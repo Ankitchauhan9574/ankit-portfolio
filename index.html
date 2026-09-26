@@ -2298,67 +2298,46 @@ function app() {
       const lower = text.toLowerCase();
       let hasInquiryTrigger = lower.includes('hire') || lower.includes('project') || lower.includes('contact') || lower.includes('email') || lower.includes('reach') || lower.includes('work') || lower.includes('rate');
 
-      const systemPrompt = `You are Ankit Nexus, the personal AI Intelligence Engine for Ankit on his developer portfolio.
-Ankit's Profile & Experience:
-- Role: Technical Lead & Full-Stack Architect
-- Core Stack: Java 21 (LTS), Spring Boot 3, Angular 17, Docker, MySQL, Linux (Ubuntu/CentOS), Nginx
-- Payment Gateways: CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub, Paytm (HMAC checksums, webhook verification, ledger reconciliation)
-- Architecture Expertise: Multi-Tenant SaaS isolation (ThreadLocal schema routing), Microservices, RSA 2048 / AES-256 hybrid cryptography, WebSocket real-time streams, PDFBox/Apache POI document generation
-- Email: ac957423@gmail.com
-- GitHub: https://github.com/Ankitchauhan9574
-- LinkedIn: https://www.linkedin.com/in/ankit-chauhan-553173235/
+      const systemPrompt = `You are Ankit Nexus, the personal AI Intelligence Engine for Ankit's developer portfolio.
+About Ankit Chauhan:
+- Role: Technical Lead & Full-Stack Architect (5+ years experience)
+- Core Tech Stack: Java 21 (LTS), Spring Boot 3, Angular 17, Docker, MySQL (ACID, indexing, query optimization), Linux (Ubuntu/CentOS), Nginx reverse proxy
+- Payment Gateways: Direct enterprise integrations with CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub, and Paytm (HMAC checksums, webhook verification, idempotent reconciliation)
+- Architecture Expertise: Multi-Tenant SaaS isolation (subdomain/header routing with ThreadLocal schema switching), Microservices architecture, RSA 2048 / AES-256 hybrid cryptography, WebSocket real-time events, PDFBox/Apache POI reporting
+- Contact: Email: ac957423@gmail.com | LinkedIn: https://www.linkedin.com/in/ankit-chauhan-553173235/
 
-Guidelines:
-1. Speak as Ankit Nexus, a confident, highly capable technical AI engine.
-2. Give clean, well-formatted answers with markdown bullet points and bold highlights.
-3. If the user asks about hiring, collaborating, or contacting Ankit, encourage them to submit the inquiry directly.
-4. Keep replies concise, authoritative, and helpful.`;
+Behavioral Guidelines:
+1. Always respond naturally in the same language the user speaks (English, Hindi, or Hinglish).
+2. Be polite, friendly, sharp, and highly intelligent.
+3. If the user asks about Ankit's skills, experience, projects, or architecture, explain clearly with crisp bullet points and technical depth.
+4. If the user asks general conversational or technical questions, answer helpfully and accurately.
+5. If the user wants to hire, collaborate, or contact Ankit, guide them to send an inquiry or email ac957423@gmail.com.
+6. Keep formatting clean with bold text and bullet points.`;
 
       let responseText = '';
 
-      // ─── TIER 1: Primary AI Engine (High Speed) ───
-      if (this.geminiApiKey) {
-        for (const model of this.geminiModels) {
-          try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.geminiApiKey.trim()}`;
-            
-            const contents = [
-              {
-                role: 'user',
-                parts: [{ text: `${systemPrompt}\n\nUser Question: ${text}` }]
-              }
-            ];
-
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: contents,
-                generationConfig: {
-                  temperature: 0.7,
-                  maxOutputTokens: 600
-                }
-              })
-            });
-
-            if (res.ok) {
-              const data = await res.json();
-              if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                responseText = data.candidates[0].content.parts[0].text;
-                break; // Responded successfully!
-              }
-            }
-          } catch (e) {
-            console.warn(`Model ${model} attempt error:`, e);
-          }
+      // Prepare conversation history (last 6 messages for context)
+      const chatHistory = [];
+      const recentMsgs = this.chatMessages.slice(-6);
+      for (const m of recentMsgs) {
+        if (m.sender === 'user' && m.text) {
+          chatHistory.push({ role: 'user', content: m.text });
+        } else if (m.sender === 'bot' && m.text) {
+          chatHistory.push({ role: 'assistant', content: m.text });
         }
       }
+      if (chatHistory.length === 0 || chatHistory[chatHistory.length - 1].content !== text) {
+        chatHistory.push({ role: 'user', content: text });
+      }
 
-      // ─── TIER 2: Secondary Router Fallback (If Primary is busy/rate-limited) ───
-      if (!responseText && this.hfToken) {
+      // ─── TIER 1: Primary AI Engine (Hugging Face Router with High-Speed Models) ───
+      if (this.hfToken) {
         for (const hfModel of this.hfModels) {
           try {
             const hfUrl = 'https://router.huggingface.co/v1/chat/completions';
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 9000);
+
             const res = await fetch(hfUrl, {
               method: 'POST',
               headers: {
@@ -2369,31 +2348,73 @@ Guidelines:
                 model: hfModel,
                 messages: [
                   { role: 'system', content: systemPrompt },
-                  { role: 'user', content: text }
+                  ...chatHistory
                 ],
                 max_tokens: 600,
                 temperature: 0.7
-              })
+              }),
+              signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             if (res.ok) {
               const data = await res.json();
               if (data.choices?.[0]?.message?.content) {
-                responseText = data.choices[0].message.content;
-                break; // Fallback responded successfully!
+                responseText = data.choices[0].message.content.trim();
+                break;
               }
             }
           } catch (e) {
-            console.warn(`Secondary model ${hfModel} fallback error:`, e);
+            console.warn(`Router model ${hfModel} attempt error:`, e);
           }
         }
       }
 
-      // ─── TIER 3: Rich Built-in Knowledge Base Fallback ───
+      // ─── TIER 2: Secondary Engine (Gemini Cloud Engine) ───
+      if (!responseText && this.geminiApiKey) {
+        for (const model of this.geminiModels) {
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.geminiApiKey.trim()}`;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    role: 'user',
+                    parts: [{ text: `${systemPrompt}\n\nUser Question: ${text}` }]
+                  }
+                ],
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 600
+                }
+              }),
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                responseText = data.candidates[0].content.parts[0].text.trim();
+                break;
+              }
+            }
+          } catch (e) {
+            console.warn(`Model ${model} attempt error:`, e);
+          }
+        }
+      }
+
+      // ─── TIER 3: Built-in Knowledge Base Fallback ───
       if (!responseText) {
-        if (lower.includes('stack') || lower.includes('tech') || lower.includes('skills')) {
+        if (lower.includes('stack') || lower.includes('tech') || lower.includes('skills') || lower.includes('java')) {
           responseText = "Ankit's Core Technology Stack:\n* **Backend**: Java 21 (LTS), Spring Boot 3, JPA / Hibernate, REST APIs, WebSocket\n* **Frontend**: Angular 17, TypeScript, SCSS, Reactive Forms\n* **Database**: MySQL (ACID transactions, indexing, query optimization)\n* **DevOps & Containers**: Docker, Linux (Ubuntu/CentOS), Nginx reverse proxy\n* **Security**: RSA 2048, AES-256, HMAC-SHA256 checksums, JWT RBAC";
-        } else if (lower.includes('payment') || lower.includes('ccavenue') || lower.includes('razorpay') || lower.includes('paytm')) {
+        } else if (lower.includes('payment') || lower.includes('ccavenue') || lower.includes('razorpay') || lower.includes('paytm') || lower.includes('easypay')) {
           responseText = "Ankit is an expert in multi-gateway fintech infrastructure:\n* **Direct Integrations**: CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub & Paytm\n* **Security**: Cryptographic HMAC checksums and AES payload encryption\n* **Resilience**: Idempotent webhook callbacks with replay protection and automatic ledger reconciliation";
         } else if (lower.includes('saas') || lower.includes('multi-tenant') || lower.includes('architecture')) {
           responseText = "Ankit architects High-Volume Multi-Tenant SaaS Systems:\n* **Tenant Isolation**: Subdomain & header-based ThreadLocal context resolution\n* **Database Architecture**: Isolated schema routing ensuring zero data leakage\n* **Performance**: Connection pooling (HikariCP), composite indexing, and sub-millisecond lookups";
@@ -2402,13 +2423,30 @@ Guidelines:
         } else if (hasInquiryTrigger) {
           responseText = "Ankit is open to Technical Leadership, Architect roles, and high-impact software projects!\n\nDirect Email: **ac957423@gmail.com**\nLinkedIn: **linkedin.com/in/ankit-chauhan-553173235**\n\nYou can send your inquiry directly below!";
           hasInquiryTrigger = true;
+        } else if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey') || lower.includes('namaste')) {
+          responseText = "Hello! 👋 Main **Ankit Nexus** hoon, Ankit Chauhan ka personal AI Assistant. Main aapki kya madad kar sakta hoon? Aap Ankit ke Java 21 architecture, Spring Boot microservices, payment gateways (CCAvenue, Razorpay, Paytm), ya kisi project inquiry ke baare me pooch sakte hain!";
         } else {
-          responseText = "Ankit is a Technical Lead & Full-Stack Architect specializing in **Java 21 (LTS)**, **Spring Boot 3**, **Angular 17**, **Docker**, **MySQL**, and multi-gateway payments (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm).\n\nFeel free to ask about his system design, payment flows, or discuss a project!";
+          responseText = "Main **Ankit Nexus** hoon — Ankit ka AI Engine! Ankit ek Technical Lead & Full-Stack Architect hain jo **Java 21 (LTS)**, **Spring Boot 3**, **Angular 17**, **Docker**, **MySQL**, aur **Payment Gateways** me specialized hain.\n\nAap kisi bhi specific topic par pooch sakte hain ya direct inquiry bhej sakte hain!";
         }
       }
 
       // ChatGPT-style Live Streaming Typewriter Animation
       await this.streamBotMessage(responseText, hasInquiryTrigger, text);
+    },
+
+    renderMarkdown(text) {
+      if (!text) return '';
+      let html = String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em class="text-zinc-300">$1</em>')
+        .replace(/`([^`]+)`/g, '<code class="bg-zinc-800 text-amber-300 px-1 py-0.5 rounded text-[11px] font-mono">$1</code>')
+        .replace(/^[\*\-]\s+(.*)$/gm, '<div class="flex items-start gap-1.5 my-0.5"><span class="text-accent shrink-0">•</span><span>$1</span></div>')
+        .replace(/\n\n/g, '<div class="h-2"></div>')
+        .replace(/\n/g, '<br/>');
+      return html;
     },
 
     async streamBotMessage(fullText, hasInquiryTrigger, inquirySubject) {
@@ -2427,22 +2465,25 @@ Guidelines:
       this.isChatbotTyping = false;
       this.chatMessages.push(newMsg);
 
-      // Split into words / token chunks preserving whitespace
-      const tokens = fullText.split(/(\s+)/);
-      let accumulated = '';
+      try {
+        const tokens = fullText.split(/(\s+)/);
+        let accumulated = '';
 
-      for (let i = 0; i < tokens.length; i++) {
-        accumulated += tokens[i];
-        newMsg.text = accumulated;
-        this.scrollChatToBottom();
-        // 12-16ms smooth streaming interval for realistic ChatGPT speed
-        if (tokens[i].trim()) {
-          await new Promise(r => setTimeout(r, 14));
+        for (let i = 0; i < tokens.length; i++) {
+          accumulated += tokens[i];
+          newMsg.text = accumulated;
+          this.scrollChatToBottom();
+          if (tokens[i].trim()) {
+            await new Promise(r => setTimeout(r, 16));
+          }
         }
+      } catch (err) {
+        console.error('Streaming error:', err);
+        newMsg.text = fullText;
+      } finally {
+        newMsg.isTyping = false;
+        this.scrollChatToBottom();
       }
-
-      newMsg.isTyping = false;
-      this.scrollChatToBottom();
     },
 
     scrollChatToBottom() {
