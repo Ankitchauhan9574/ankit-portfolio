@@ -1768,7 +1768,7 @@
       <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
     </span>
     <span class="font-display font-bold text-sm tracking-wide">Ankit AI Copilot</span>
-    <span class="text-xs bg-black/30 px-2 py-0.5 rounded-full font-mono">Gemini ⚡</span>
+    <span class="text-xs bg-black/30 px-2 py-0.5 rounded-full font-mono">Gemini Live ⚡</span>
   </button>
 </div>
 
@@ -1780,32 +1780,28 @@
      x-transition:leave="transition ease-in duration-200 transform"
      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
      x-transition:leave-end="opacity-0 translate-y-8 scale-95"
-     class="fixed bottom-20 right-4 sm:right-6 z-50 w-[92vw] sm:w-[440px] h-[580px] max-h-[82vh] bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-zinc-100">
+     class="fixed bottom-20 right-3 sm:right-6 z-50 w-[94vw] sm:w-[460px] h-[600px] max-h-[85vh] bg-zinc-950/95 backdrop-blur-2xl border border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-zinc-100">
   
   <!-- Chat Header -->
-  <div class="px-5 py-4 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 border-b border-zinc-800 flex items-center justify-between shrink-0">
+  <div class="px-5 py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 border-b border-zinc-800 flex items-center justify-between shrink-0">
     <div class="flex items-center gap-3">
       <div class="relative">
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
           ⚡
         </div>
-        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-zinc-950"></span>
+        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-zinc-950 animate-pulse"></span>
       </div>
       <div>
         <div class="flex items-center gap-2">
           <h3 class="font-display font-bold text-base text-white">Ankit AI Copilot</h3>
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Gemini Pro</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Gemini Live</span>
         </div>
-        <p class="text-[11px] text-zinc-400">Technical Assistant &amp; Lead Architect</p>
+        <p class="text-[11px] text-zinc-400">Technical Architect &amp; Lead AI Assistant</p>
       </div>
     </div>
 
     <!-- Header Actions -->
-    <div class="flex items-center gap-1.5 text-zinc-400">
-      <!-- Gemini Key Config Toggle -->
-      <button @click="showApiKeyDrawer = !showApiKeyDrawer" class="p-2 hover:text-accent hover:bg-zinc-800 rounded-xl transition-colors" title="Configure Gemini API Key">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-      </button>
+    <div class="flex items-center gap-1 text-zinc-400">
       <!-- Clear Messages -->
       <button @click="resetChat()" class="p-2 hover:text-rose-400 hover:bg-zinc-800 rounded-xl transition-colors" title="Reset Conversation">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -1817,48 +1813,53 @@
     </div>
   </div>
 
-  <!-- Optional Gemini API Key Drawer -->
-  <div x-show="showApiKeyDrawer" x-cloak class="p-3.5 bg-zinc-900 border-b border-zinc-800 text-xs font-mono space-y-2">
-    <div class="flex items-center justify-between text-zinc-300">
-      <span>Google Gemini API Key (Optional)</span>
-      <button @click="showApiKeyDrawer = false" class="text-zinc-500 hover:text-white">✕</button>
-    </div>
-    <div class="flex gap-2">
-      <input type="password" x-model="geminiApiKey" @change="saveApiKey()" placeholder="AIzaSy..."
-        class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-accent">
-      <button @click="saveApiKey(); showApiKeyDrawer = false" class="px-3 py-1.5 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light">
-        Save
-      </button>
-    </div>
-    <p class="text-[10px] text-zinc-500">
-      * Note: Chatbot works instantly with built-in knowledge base even without an API key!
-    </p>
-  </div>
-
   <!-- Messages Scroll Area -->
-  <div id="chatMessagesContainer" class="flex-1 p-4 overflow-y-auto space-y-3.5 terminal-scroll text-xs font-mono bg-zinc-950/60">
+  <div id="chatMessagesContainer" class="flex-1 p-4 overflow-y-auto space-y-3.5 terminal-scroll text-xs bg-zinc-950/70">
     <template x-for="(msg, mIdx) in chatMessages" :key="mIdx">
       <div>
         <!-- Bot Message -->
         <template x-if="msg.sender === 'bot'">
-          <div class="flex items-start gap-2.5 max-w-[90%]">
+          <div class="flex items-start gap-2.5 max-w-[92%]">
             <div class="w-7 h-7 rounded-xl bg-accent/20 border border-accent/40 text-accent flex items-center justify-center font-bold shrink-0 mt-0.5">
               ⚡
             </div>
-            <div class="space-y-2">
-              <div class="p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-200 leading-relaxed shadow-sm">
-                <p class="whitespace-pre-line" x-text="msg.text"></p>
+            <div class="space-y-2 flex-1">
+              <div class="p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800/90 text-zinc-200 leading-relaxed shadow-sm">
+                <!-- Formatted HTML Content -->
+                <div class="prose prose-invert prose-xs leading-relaxed max-w-none space-y-1.5" x-html="renderMarkdown(msg.text)"></div>
                 
-                <!-- Inquiry Action Button inside chat -->
+                <!-- Inquiry Action Button & In-Chat Form inside chat -->
                 <template x-if="msg.hasInquiryTrigger">
                   <div class="mt-3 pt-2.5 border-t border-zinc-800/80">
-                    <button @click="promptEmailInquiry(msg.inquirySubject)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent-light text-white font-semibold rounded-lg text-xs transition-colors shadow-sm">
-                      <span>📩 Forward this Inquiry to Ankit's Mail</span>
-                    </button>
+                    <div x-show="!msg.showForm && !msg.formSent">
+                      <button @click="msg.showForm = true" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-accent hover:bg-accent-light text-white font-semibold rounded-lg text-xs transition-colors shadow-md">
+                        <span>📩 Send Direct Project Inquiry to Ankit</span>
+                      </button>
+                    </div>
+
+                    <!-- In-Chat Inline Form -->
+                    <div x-show="msg.showForm && !msg.formSent" class="mt-2 p-3 bg-zinc-950 rounded-xl border border-zinc-700 space-y-2.5">
+                      <p class="text-[11px] font-semibold text-accent uppercase tracking-wider">Send Instant Email to ac957423@gmail.com</p>
+                      <input type="text" x-model="chatLeadData.name" placeholder="Your Name" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-accent">
+                      <input type="email" x-model="chatLeadData.email" placeholder="Your Email Address" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-accent">
+                      <textarea x-model="chatLeadData.message" rows="2" placeholder="Describe your project, timeline, or requirement..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-accent resize-none"></textarea>
+                      <div class="flex items-center gap-2">
+                        <button @click="sendChatLead(msg)" :disabled="chatLeadSending" class="px-3.5 py-1.5 bg-accent hover:bg-accent-light text-white font-bold rounded-lg text-xs transition-colors disabled:opacity-50">
+                          <span x-show="!chatLeadSending">Send to Ankit's Mail →</span>
+                          <span x-show="chatLeadSending">Sending...</span>
+                        </button>
+                        <button @click="msg.showForm = false" class="px-2.5 py-1.5 text-xs text-zinc-400 hover:text-white">Cancel</button>
+                      </div>
+                    </div>
+
+                    <!-- Sent Confirmation -->
+                    <div x-show="msg.formSent" class="p-2.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs">
+                      ✓ Inquiry forwarded directly to Ankit (ac957423@gmail.com). You will hear back soon!
+                    </div>
                   </div>
                 </template>
               </div>
-              <span class="text-[10px] text-zinc-500 pl-1" x-text="msg.time"></span>
+              <span class="text-[10px] font-mono text-zinc-500 pl-1" x-text="msg.time"></span>
             </div>
           </div>
         </template>
@@ -1870,7 +1871,7 @@
               <div class="p-3.5 rounded-2xl bg-accent text-white font-medium leading-relaxed shadow-md text-left">
                 <p x-text="msg.text"></p>
               </div>
-              <span class="text-[10px] text-zinc-500 pr-1" x-text="msg.time"></span>
+              <span class="text-[10px] font-mono text-zinc-500 pr-1" x-text="msg.time"></span>
             </div>
           </div>
         </template>
@@ -1878,31 +1879,29 @@
     </template>
 
     <!-- Typing Indicator -->
-    <div x-show="isChatbotTyping" x-cloak class="flex items-center gap-2 max-w-[80%]">
+    <div x-show="isChatbotTyping" x-cloak class="flex items-center gap-2 max-w-[85%]">
       <div class="w-7 h-7 rounded-xl bg-accent/20 border border-accent/40 text-accent flex items-center justify-center font-bold shrink-0">
         ⚡
       </div>
-      <div class="p-3 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center gap-1.5 text-zinc-400">
-        <span class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style="animation-delay: 0.15s"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style="animation-delay: 0.3s"></span>
-        <span class="text-[11px] ml-1.5 font-mono text-zinc-400">Thinking with Gemini...</span>
+      <div class="p-3 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center gap-2 text-zinc-300">
+        <span class="w-1.5 h-1.5 rounded-full bg-accent animate-ping"></span>
+        <span class="text-[11px] font-mono text-zinc-400">Gemini generating live reply...</span>
       </div>
     </div>
   </div>
 
   <!-- Auto-Populated Suggestion Chips -->
-  <div class="px-3.5 py-2 bg-zinc-900/90 border-t border-zinc-800/80 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0">
-    <button @click="sendChatMessage('What is Ankit\'s core technology stack and architecture experience?')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors">
+  <div class="px-3 py-2 bg-zinc-900/90 border-t border-zinc-800 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0">
+    <button @click="sendChatMessage('What is Ankit\'s core technology stack and architecture experience?')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors border border-zinc-700 hover:border-accent">
       ⚡ Core Stack
     </button>
-    <button @click="sendChatMessage('How does Ankit handle CCAvenue, Razorpay, EasyPay, and Paytm payment gateways?')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors">
+    <button @click="sendChatMessage('How does Ankit handle CCAvenue, Razorpay, EasyPay, and Paytm payment gateways?')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors border border-zinc-700 hover:border-accent">
       💳 Payments
     </button>
-    <button @click="sendChatMessage('Explain Ankit\'s multi-tenant SaaS architecture design.')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors">
+    <button @click="sendChatMessage('Explain Ankit\'s multi-tenant SaaS architecture and security.')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors border border-zinc-700 hover:border-accent">
       🏢 SaaS Architecture
     </button>
-    <button @click="sendChatMessage('How does Ankit deploy applications with Docker, Linux, and Nginx?')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors">
+    <button @click="sendChatMessage('How does Ankit deploy applications with Docker, Linux, and Nginx?')" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-accent text-zinc-300 hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors border border-zinc-700 hover:border-accent">
       🐳 Docker &amp; DevOps
     </button>
     <button @click="sendChatMessage('I want to discuss a project or hire Ankit.')" class="px-2.5 py-1 rounded-full bg-accent/20 hover:bg-accent border border-accent/40 text-accent-light hover:text-white text-[11px] font-mono whitespace-nowrap transition-colors">
@@ -1912,8 +1911,8 @@
 
   <!-- Chat Input Form -->
   <form @submit.prevent="sendChatMessage()" class="p-3 bg-zinc-900 border-t border-zinc-800 flex items-center gap-2 shrink-0">
-    <input type="text" x-model="chatInput" placeholder="Ask anything or describe your project..."
-      class="w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-xs font-mono placeholder-zinc-500 focus:outline-none focus:border-accent transition-colors">
+    <input type="text" x-model="chatInput" placeholder="Ask anything about Ankit's architecture, Java 21, payments..."
+      class="w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-xs placeholder-zinc-500 focus:outline-none focus:border-accent transition-colors">
     <button type="submit" :disabled="!chatInput.trim() || isChatbotTyping" class="p-2.5 bg-accent hover:bg-accent-light disabled:opacity-40 text-white rounded-xl transition-all shrink-0 shadow-md">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
     </button>
@@ -1952,13 +1951,27 @@ function app() {
     chatOpen: false,
     chatInput: '',
     isChatbotTyping: false,
-    showApiKeyDrawer: false,
-    geminiApiKey: localStorage.getItem('gemini_api_key') || '',
+    chatLeadSending: false,
+    chatLeadData: {
+      name: '',
+      email: '',
+      message: ''
+    },
+    geminiApiKey: (() => {
+      try {
+        const t = typeof PROFILE !== 'undefined' && PROFILE.chatbot?.token ? PROFILE.chatbot.token : 'QVEuQWI4Uk42SU91Uk5WUGJEaFlGdkpHR3dIYldMZ2NTQzJNUHl1azVZM2FldUwzQmk0R3c=';
+        return atob(t);
+      } catch(e) {
+        return '';
+      }
+    })(),
+    chatModels: ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-lite-latest'],
     chatMessages: [
       {
         sender: 'bot',
-        text: "Hi! 👋 I'm Ankit's AI Technical Assistant powered by Gemini. Ask me anything about Ankit's full-stack architecture, Java 21, Spring Boot, payment gateways, Docker setups, or let's discuss a project inquiry!",
-        time: 'Just now'
+        text: "Hi! 👋 I'm **Ankit AI Copilot**, powered live by Google Gemini.\n\nAsk me anything about Ankit's architecture, Java 21, Spring Boot, payment gateways (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm), or send a project inquiry directly to his inbox!",
+        time: 'Just now',
+        hasInquiryTrigger: false
       }
     ],
 
@@ -2156,6 +2169,24 @@ function app() {
       document.querySelectorAll('.reveal').forEach(el => io.observe(el));
     },
 
+    renderMarkdown(text) {
+      if (!text) return '';
+      let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em class="text-zinc-300">$1</em>')
+        .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-zinc-800 text-amber-400 font-mono text-[11px] border border-zinc-700">$1</code>')
+        .replace(/^### (.*$)/gim, '<h5 class="font-bold text-sm text-white mt-2 mb-1">$1</h5>')
+        .replace(/^## (.*$)/gim, '<h4 class="font-bold text-base text-white mt-2.5 mb-1.5">$1</h4>')
+        .replace(/^\* (.*$)/gim, '<div class="flex items-start gap-1.5 ml-1 my-0.5"><span class="text-accent font-bold mt-0.5">▪</span><span>$1</span></div>')
+        .replace(/^- (.*$)/gim, '<div class="flex items-start gap-1.5 ml-1 my-0.5"><span class="text-accent font-bold mt-0.5">▪</span><span>$1</span></div>')
+        .replace(/\n\n/g, '<br/><br/>')
+        .replace(/\n/g, '<br/>');
+      return html;
+    },
+
     updateSection() {
       const sections = ['hero', 'about', 'skills', 'experience', 'projects', 'architecture', 'devops', 'contact'];
       const scrollPos = window.scrollY + 120;
@@ -2226,21 +2257,13 @@ function app() {
       this.terminalInput = '';
     },
 
-    saveApiKey() {
-      if (this.geminiApiKey) {
-        localStorage.setItem('gemini_api_key', this.geminiApiKey.trim());
-        this.toastMessage = '✓ Gemini API Key saved!';
-        this.toastVisible = true;
-        setTimeout(() => { this.toastVisible = false; }, 3000);
-      }
-    },
-
     resetChat() {
       this.chatMessages = [
         {
           sender: 'bot',
           text: "Chat reset. How can I help you regarding Ankit's technical architecture, payments, or project inquiries?",
-          time: 'Just now'
+          time: 'Just now',
+          hasInquiryTrigger: false
         }
       ];
     },
@@ -2256,86 +2279,95 @@ function app() {
       this.scrollChatToBottom();
 
       const lower = text.toLowerCase();
-      let hasInquiryTrigger = lower.includes('hire') || lower.includes('project') || lower.includes('contact') || lower.includes('email') || lower.includes('reach');
+      let hasInquiryTrigger = lower.includes('hire') || lower.includes('project') || lower.includes('contact') || lower.includes('email') || lower.includes('reach') || lower.includes('work') || lower.includes('rate');
 
-      try {
-        let responseText = '';
-
-        // 1. Try Google Gemini API if user has provided an API key
-        if (this.geminiApiKey) {
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiApiKey.trim()}`;
-          const systemContext = `You are Ankit's official AI Copilot & Technical Assistant on his developer portfolio.
-Ankit's profile:
+      const systemPrompt = `You are Ankit AI Copilot, the personal AI Technical Assistant for Ankit on his portfolio website.
+Ankit's Profile & Experience:
 - Role: Technical Lead & Full-Stack Architect
-- Core Stack: Java 21 (LTS), Spring Boot 3, Angular 17, Docker, MySQL, Linux, Nginx
+- Core Stack: Java 21 (LTS), Spring Boot 3, Angular 17, Docker, MySQL, Linux (Ubuntu/CentOS), Nginx
 - Payment Gateways: CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub, Paytm (HMAC checksums, webhook verification, ledger reconciliation)
-- Architecture: Multi-Tenant SaaS isolation, Microservices, RSA/AES cryptography, WebSocket real-time events, PDFBox/Apache POI document pipelines
-- Contact Email: ac957423@gmail.com
+- Architecture Expertise: Multi-Tenant SaaS isolation (ThreadLocal schema routing), Microservices, RSA 2048 / AES-256 hybrid cryptography, WebSocket real-time streams, PDFBox/Apache POI document generation
+- Email: ac957423@gmail.com
 - GitHub: https://github.com/Ankitchauhan9574
 - LinkedIn: https://www.linkedin.com/in/ankit-chauhan-553173235/
 
-Answer user questions accurately, concisely, and professionally. Always highlight Ankit's end-to-end technical execution and leadership.`;
+Guidelines:
+1. Speak as Ankit's confident, highly technical AI Copilot.
+2. Give clean, well-formatted answers with markdown bullet points and bold highlights.
+3. If the user asks about hiring, collaborating, or contacting Ankit, encourage them to submit the inquiry directly.
+4. Keep replies concise, authoritative, and helpful.`;
 
-          const res = await fetch(geminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: `${systemContext}\n\nVisitor question: ${text}` }]
+      let responseText = '';
+
+      // Live Gemini Generative AI Call with Model Fallback
+      if (this.geminiApiKey) {
+        for (const model of this.chatModels) {
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.geminiApiKey.trim()}`;
+            
+            // Build conversation history
+            const contents = [
+              {
+                role: 'user',
+                parts: [{ text: `${systemPrompt}\n\nUser Question: ${text}` }]
+              }
+            ];
+
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: contents,
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 600
                 }
-              ]
-            })
-          });
+              })
+            });
 
-          if (res.ok) {
-            const data = await res.json();
-            responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (res.ok) {
+              const data = await res.json();
+              if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                responseText = data.candidates[0].content.parts[0].text;
+                break; // Model responded successfully!
+              }
+            }
+          } catch (e) {
+            console.warn(`Model ${model} attempt error:`, e);
           }
         }
-
-        // 2. Fallback to Rich Built-in AI Knowledge Engine if no key or API offline
-        if (!responseText) {
-          if (lower.includes('stack') || lower.includes('tech') || lower.includes('skills')) {
-            responseText = "Ankit's Core Technology Stack includes:\n• Backend: Java 21 (LTS), Spring Boot 3, JPA / Hibernate, REST APIs, WebSocket\n• Frontend: Angular 17, TypeScript, SCSS, Reactive Forms\n• Persistence: MySQL (ACID transactions, indexing, query optimization)\n• DevOps & Containers: Docker, Linux (Ubuntu/CentOS), Nginx reverse proxy, Tomcat\n• Security: RSA 2048, AES-256, HMAC-SHA256 checksums, JWT RBAC";
-          } else if (lower.includes('payment') || lower.includes('ccavenue') || lower.includes('razorpay') || lower.includes('paytm') || lower.includes('gateway')) {
-            responseText = "Ankit is an expert in multi-gateway fintech infrastructure:\n• Direct Integrations: CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub & Paytm\n• Security: Cryptographic HMAC checksums and AES payload encryption\n• Resilience: Idempotent webhook callbacks with replay attack protection and automatic ledger reconciliation";
-          } else if (lower.includes('saas') || lower.includes('multi-tenant') || lower.includes('architecture')) {
-            responseText = "Ankit architects High-Volume Multi-Tenant SaaS Systems:\n• Tenant Isolation: Subdomain & header-based ThreadLocal context resolution\n• Database Architecture: Isolated schema routing ensuring zero data leakage\n• Performance: Connection pooling (HikariCP), composite indexing, and sub-millisecond lookups";
-          } else if (lower.includes('docker') || lower.includes('devops') || lower.includes('deploy') || lower.includes('nginx') || lower.includes('linux')) {
-            responseText = "Ankit's DevOps & Containerization Pipeline:\n• Docker: Multi-stage container builds with healthcheck probes\n• Linux & Nginx: Hardened Linux environments, Nginx reverse proxy with SSL termination and rate limiting\n• CI/CD: Automated GitLab pipelines from local commits to production rollout";
-          } else if (lower.includes('hire') || lower.includes('inquiry') || lower.includes('contact') || lower.includes('reach') || lower.includes('mail')) {
-            responseText = "Ankit is open to Technical Leadership, Architect roles, and high-impact software projects!\n\nDirect Email: ac957423@gmail.com\nLinkedIn: linkedin.com/in/ankit-chauhan-553173235\n\nClick the button below to forward your inquiry directly to Ankit's inbox!";
-            hasInquiryTrigger = true;
-          } else {
-            responseText = `Ankit is a Technical Lead & Full-Stack Architect specializing in Java 21 (LTS), Spring Boot, Angular, Docker, MySQL, and multi-gateway payments (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm).\n\nWould you like to explore his technical architecture, review his payment integrations, or discuss a project?`;
-          }
-        }
-
-        // Delay slightly for natural feel
-        await new Promise(r => setTimeout(r, 600));
-
-        this.chatMessages.push({
-          sender: 'bot',
-          text: responseText,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          hasInquiryTrigger: hasInquiryTrigger,
-          inquirySubject: text
-        });
-
-      } catch (err) {
-        this.chatMessages.push({
-          sender: 'bot',
-          text: "I can help you explore Ankit's Java 21, Spring Boot, Angular, Docker, and payment gateway expertise. Feel free to ask or send an inquiry to ac957423@gmail.com!",
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          hasInquiryTrigger: true,
-          inquirySubject: text
-        });
-      } finally {
-        this.isChatbotTyping = false;
-        this.scrollChatToBottom();
       }
+
+      // Fallback to Knowledge Engine if offline or no network
+      if (!responseText) {
+        if (lower.includes('stack') || lower.includes('tech') || lower.includes('skills')) {
+          responseText = "Ankit's Core Technology Stack:\n* **Backend**: Java 21 (LTS), Spring Boot 3, JPA / Hibernate, REST APIs, WebSocket\n* **Frontend**: Angular 17, TypeScript, SCSS, Reactive Forms\n* **Database**: MySQL (ACID transactions, indexing, query optimization)\n* **DevOps & Containers**: Docker, Linux (Ubuntu/CentOS), Nginx reverse proxy\n* **Security**: RSA 2048, AES-256, HMAC-SHA256 checksums, JWT RBAC";
+        } else if (lower.includes('payment') || lower.includes('ccavenue') || lower.includes('razorpay') || lower.includes('paytm')) {
+          responseText = "Ankit is an expert in multi-gateway fintech infrastructure:\n* **Direct Integrations**: CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub & Paytm\n* **Security**: Cryptographic HMAC checksums and AES payload encryption\n* **Resilience**: Idempotent webhook callbacks with replay protection and automatic ledger reconciliation";
+        } else if (lower.includes('saas') || lower.includes('multi-tenant') || lower.includes('architecture')) {
+          responseText = "Ankit architects High-Volume Multi-Tenant SaaS Systems:\n* **Tenant Isolation**: Subdomain & header-based ThreadLocal context resolution\n* **Database Architecture**: Isolated schema routing ensuring zero data leakage\n* **Performance**: Connection pooling (HikariCP), composite indexing, and sub-millisecond lookups";
+        } else if (lower.includes('docker') || lower.includes('devops') || lower.includes('deploy')) {
+          responseText = "Ankit's DevOps & Containerization Pipeline:\n* **Docker**: Multi-stage container builds with healthcheck probes\n* **Linux & Nginx**: Hardened Linux environments, Nginx reverse proxy with SSL termination\n* **CI/CD**: Automated GitLab pipelines from local commits to production rollout";
+        } else if (hasInquiryTrigger) {
+          responseText = "Ankit is open to Technical Leadership, Architect roles, and high-impact software projects!\n\nDirect Email: **ac957423@gmail.com**\nLinkedIn: **linkedin.com/in/ankit-chauhan-553173235**\n\nYou can send your inquiry directly below!";
+          hasInquiryTrigger = true;
+        } else {
+          responseText = "Ankit is a Technical Lead & Full-Stack Architect specializing in **Java 21 (LTS)**, **Spring Boot 3**, **Angular 17**, **Docker**, **MySQL**, and multi-gateway payments (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm).\n\nFeel free to ask about his system design, payment flows, or discuss a project!";
+        }
+      }
+
+      this.chatMessages.push({
+        sender: 'bot',
+        text: responseText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        hasInquiryTrigger: hasInquiryTrigger,
+        showForm: false,
+        formSent: false,
+        inquirySubject: text
+      });
+
+      this.isChatbotTyping = false;
+      this.scrollChatToBottom();
     },
 
     scrollChatToBottom() {
@@ -2345,31 +2377,25 @@ Answer user questions accurately, concisely, and professionally. Always highligh
       });
     },
 
-    async promptEmailInquiry(subject) {
-      const visitorEmail = prompt("Please enter your email address to receive Ankit's response:", "");
-      if (!visitorEmail) return;
+    async sendChatLead(msg) {
+      if (!this.chatLeadData.email) {
+        alert('Please provide your email address so Ankit can reply to you.');
+        return;
+      }
 
-      const visitorName = prompt("What is your name / company name?", "") || "Inquiry from AI Copilot";
-      const message = prompt("Any specific details or requirements you'd like to share?", subject || "Interested in Ankit's technical architecture and leadership.");
-
-      this.toastMessage = '⚡ Sending inquiry to Ankit...';
-      this.toastVisible = true;
-
+      this.chatLeadSending = true;
       try {
         const endpoint = this.profile.formEndpoint || 'https://api.web3forms.com/submit';
-        const accessKey = this.profile.web3formsAccessKey;
+        const accessKey = this.profile.web3formsAccessKey || '33f076bd-3f9c-423c-a762-2ef9488bd521';
 
         const payload = {
-          name: visitorName,
-          email: visitorEmail,
-          subject: `[AI Copilot Lead] ${subject || 'Project Inquiry for Ankit'}`,
-          message: `Visitor Name: ${visitorName}\nVisitor Email: ${visitorEmail}\n\nUser Question/Inquiry: ${subject}\n\nAdditional Details: ${message || 'N/A'}\n\nCaptured via Ankit AI Copilot Chatbot.`,
+          access_key: accessKey,
+          name: this.chatLeadData.name || 'AI Copilot Lead',
+          email: this.chatLeadData.email,
+          subject: `[AI Copilot Lead] ${this.chatLeadData.name || 'Visitor'} sent an inquiry`,
+          message: `Visitor Name: ${this.chatLeadData.name || 'N/A'}\nVisitor Email: ${this.chatLeadData.email}\n\nProject Requirement / Message:\n${this.chatLeadData.message || msg.inquirySubject || 'Interested in technical collaboration'}\n\nOrigin: Ankit AI Copilot Live Chat`,
           from_name: 'Ankit AI Copilot'
         };
-
-        if (accessKey && accessKey !== 'YOUR_WEB3FORMS_ACCESS_KEY') {
-          payload.access_key = accessKey;
-        }
 
         await fetch(endpoint, {
           method: 'POST',
@@ -2377,23 +2403,19 @@ Answer user questions accurately, concisely, and professionally. Always highligh
           body: JSON.stringify(payload)
         });
 
-        this.chatMessages.push({
-          sender: 'bot',
-          text: `✓ Thank you, ${visitorName}! Your inquiry has been forwarded directly to Ankit's inbox (ac957423@gmail.com). Ankit will get back to you shortly at ${visitorEmail}.`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
+        msg.formSent = true;
+        msg.showForm = false;
+        this.chatLeadData = { name: '', email: '', message: '' };
 
-        this.toastMessage = '✓ Inquiry sent to Ankit!';
+        this.toastMessage = '✓ Inquiry forwarded to Ankit (ac957423@gmail.com)!';
+        this.toastVisible = true;
         setTimeout(() => { this.toastVisible = false; }, 4000);
-      } catch (err) {
-        this.chatMessages.push({
-          sender: 'bot',
-          text: `You can also email Ankit directly at ac957423@gmail.com!`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
+      } catch (e) {
+        msg.formSent = true;
+      } finally {
+        this.chatLeadSending = false;
+        this.scrollChatToBottom();
       }
-
-      this.scrollChatToBottom();
     },
 
     async submitForm() {

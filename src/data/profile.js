@@ -24,13 +24,14 @@ const PROFILE = {
   formEndpoint: "https://api.web3forms.com/submit",
   web3formsAccessKey: "33f076bd-3f9c-423c-a762-2ef9488bd521",
 
-  // AI Chatbot Configuration (Powered by Google Gemini)
+  // AI Chatbot Configuration (Powered by Google Gemini 100% Live)
   chatbot: {
     botName: "Ankit AI Copilot",
-    tagline: "Powered by Google Gemini & Technical Knowledge Base",
+    tagline: "Live Generative AI • Technical Architect Assistant",
     avatar: "⚡",
-    defaultModel: "gemini-1.5-flash",
-    initialMessage: "Hi! 👋 I'm Ankit's AI Technical Assistant. Ask me anything about Ankit's full-stack architecture, Java 21, Spring Boot, payment gateways, or send a project inquiry directly to his email!",
+    token: "QVEuQWI4Uk42SU91Uk5WUGJEaFlGdkpHR3dIYldMZ2NTQzJNUHl1azVZM2FldUwzQmk0R3c=",
+    models: ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-flash-lite-latest"],
+    initialMessage: "Hi! 👋 I'm **Ankit AI Copilot**, Ankit's personal AI Technical Assistant powered live by Google Gemini.\n\nAsk me anything about Ankit's architecture, Java 21, Spring Boot, microservices, payment gateways (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm), or send a project inquiry directly to his email!",
     suggestedPrompts: [
       { label: "⚡ Core Tech Stack", query: "What is Ankit's core technology stack and architecture experience?" },
       { label: "💳 Payment Gateways", query: "How does Ankit handle CCAvenue, Razorpay, EasyPay, and Paytm integrations?" },
