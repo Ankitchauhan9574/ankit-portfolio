@@ -11,7 +11,7 @@ const PROFILE = {
   title: "Team Lead | Full-Stack & Backend Architect | Java • Spring Boot • Angular • Docker",
   headline: "Hi, I'm Ankit.",
   heroStatement: "Technical Lead building scalable end-to-end enterprise systems, multi-tenant SaaS platforms, and secure payment ecosystems.",
-  heroSupportingText: "I lead engineering teams and architect complete enterprise software from frontend to backend to deployment — specializing in Java 17, Spring Boot, Angular, MySQL, Docker, Linux, Nginx, and multi-gateway payment processing (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm).",
+  heroSupportingText: "I lead engineering teams and architect complete enterprise software from frontend to backend to deployment — specializing in Java 21 (LTS), Spring Boot, Angular, MySQL, Docker, Linux, Nginx, and multi-gateway payment processing (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm).",
   availabilityBadge: "Open to Technical Leadership & Product Opportunities",
 
   // Contact & Social Details
@@ -26,7 +26,7 @@ const PROFILE = {
 
   // Core Hero Stack
   heroStack: [
-    { name: "Java 17", icon: "devicon-java-plain" },
+    { name: "Java 21 (LTS)", icon: "devicon-java-plain" },
     { name: "Spring Boot", icon: "devicon-spring-plain" },
     { name: "Angular", icon: "devicon-angularjs-plain" },
     { name: "Docker", icon: "devicon-docker-plain" },
@@ -38,7 +38,7 @@ const PROFILE = {
   // Technology Focus Cards (Hero Stats Replacement)
   focusAreas: [
     { category: "Leadership & Architecture", tech: "Team Lead • System Design", desc: "End-to-end delivery & SaaS architecture" },
-    { category: "Backend & Microservices", tech: "Java 17 + Spring Boot", desc: "Robust REST APIs & enterprise integrations" },
+    { category: "Backend & Microservices", tech: "Java 21 + Spring Boot", desc: "Robust REST APIs & enterprise integrations" },
     { category: "Payments & Security", tech: "CCAvenue • Razorpay • SmartHub", desc: "Multi-gateway checkout & AES/RSA crypto" },
     { category: "DevOps & Containers", tech: "Docker + Linux + Nginx", desc: "Containerized environments & automated deployments" }
   ],
@@ -82,7 +82,7 @@ const PROFILE = {
       "Sprint Planning", "Code Reviews", "Technical Mentorship", "Release Management"
     ],
     backend: [
-      "Java", "Java 17", "Spring Boot", "Spring MVC", "Spring Data JPA",
+      "Java", "Java 21 (LTS)", "Spring Boot", "Spring MVC", "Spring Data JPA",
       "Hibernate", "REST APIs", "WebSocket", "Spring Mail", "Maven"
     ],
     payments: [
@@ -118,7 +118,7 @@ const PROFILE = {
       badge: "High-Traffic Production SaaS Engine",
       description: "Leading technical architecture and end-to-end engineering for high-traffic procurement and tendering SaaS platforms handling thousands of transactions, bids, and enterprise vendors.",
       technologies: [
-        "Java 17", "Spring Boot", "Angular", "MySQL", "Docker",
+        "Java 21 (LTS)", "Spring Boot", "Angular", "MySQL", "Docker",
         "Linux", "Nginx", "REST APIs", "WebSocket", "JPA"
       ],
       highlights: [
@@ -135,7 +135,7 @@ const PROFILE = {
       description: "Unified payment processing system supporting multi-aggregator routing, automated checksum/signature validation, callback webhooks, and ledger reconciliation.",
       technologies: [
         "CCAvenue", "Razorpay", "EasyPay", "SmartHub", "Paytm",
-        "Java", "Spring Boot", "REST APIs", "MySQL", "HMAC/AES"
+        "Java 21", "Spring Boot", "REST APIs", "MySQL", "HMAC/AES"
       ],
       highlights: [
         "Seamless integration with CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub & Paytm",
@@ -150,7 +150,7 @@ const PROFILE = {
       badge: "Enterprise Fintech & Guarantee Workflows",
       description: "Enterprise platform for managing electronic bank guarantee workflows with external system integrations, document processing, secure communication and notification workflows.",
       technologies: [
-        "Java", "Spring Boot", "Angular / JSP", "MySQL", "JPA",
+        "Java 21", "Spring Boot", "Angular / JSP", "MySQL", "JPA",
         "Hibernate", "REST APIs", "RSA", "AES", "WebSocket", "Docker", "Linux"
       ],
       highlights: [
@@ -174,7 +174,7 @@ const PROFILE = {
       title: "Dockerized Multi-Tenant SaaS Starter Kit",
       status: "Coming Soon",
       tag: "SaaS Architecture",
-      description: "Production-ready Docker compose stack with Java 17, Spring Boot 3, Angular 17, Nginx proxy, and isolated MySQL schemas."
+      description: "Production-ready Docker compose stack with Java 21, Spring Boot 3, Angular 17, Nginx proxy, and isolated MySQL schemas."
     }
   ],
 
@@ -227,7 +227,7 @@ const PROFILE = {
       type: "Full-time",
       responsibilities: [
         "Leading end-to-end engineering and technical architecture for high-volume enterprise platforms",
-        "Architecting full-stack enterprise solutions using Java 17, Spring Boot, Angular, and MySQL",
+        "Architecting full-stack enterprise solutions using Java 21 (LTS), Spring Boot, Angular, and MySQL",
         "Integrating and managing comprehensive multi-payment gateways: CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub, and Paytm",
         "Managing Docker containerization, Linux servers, Nginx reverse proxies, Tomcat, and production deployments",
         "Implementing cryptographic security using RSA, AES encryption, and HMAC checksums",

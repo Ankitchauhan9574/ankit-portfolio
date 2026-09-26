@@ -7,7 +7,7 @@ A personal developer portfolio showcasing my experience, technical skills, softw
 ## 🚀 Project Overview
 
 This portfolio is an enterprise-grade, responsive single-page application built to present technical capabilities across:
-- **Full-Stack & Backend Systems:** Java 17, Spring Boot, Angular, REST APIs, Microservices, WebSocket
+- **Full-Stack & Backend Systems:** Java 21 (LTS), Spring Boot, Angular, REST APIs, Microservices, WebSocket
 - **Payment Gateway Ecosystems:** CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub, Paytm
 - **DevOps & Containers:** Docker, Linux (Ubuntu/CentOS), Nginx, Apache Tomcat, GitLab CI/CD
 - **Persistence & Architecture:** MySQL (ACID, Indexing), Multi-Tenant SaaS Architecture, RSA/AES Cryptography
