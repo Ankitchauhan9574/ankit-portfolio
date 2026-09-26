@@ -7,17 +7,12 @@ const PROFILE = {
   // Personal & Brand Information
   name: "Ankit",
   brandName: "ANKIT",
-  currentRole: "Technical Lead / Team Lead",
-  company: "iSourcing Technologies",
-  companyWebsites: [
-    { name: "Procure247", url: "https://procure247.com" },
-    { name: "Tender247", url: "https://tender247.com" }
-  ],
+  currentRole: "Technical Lead / Full-Stack Architect",
   title: "Team Lead | Full-Stack & Backend Architect | Java • Spring Boot • Angular • Docker",
   headline: "Hi, I'm Ankit.",
   heroStatement: "Technical Lead building scalable end-to-end enterprise systems, multi-tenant SaaS platforms, and secure payment ecosystems.",
   heroSupportingText: "I lead engineering teams and architect complete enterprise software from frontend to backend to deployment — specializing in Java 17, Spring Boot, Angular, MySQL, Docker, Linux, Nginx, and multi-gateway payment processing (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm).",
-  availabilityBadge: "Team Lead @ iSourcing Technologies (Procure247 • Tender247)",
+  availabilityBadge: "Open to Technical Leadership & Product Opportunities",
 
   // Contact & Social Details
   email: "ac957423@gmail.com",
@@ -67,7 +62,7 @@ const PROFILE = {
     {
       id: "saas-applications",
       title: "Multi-Tenant SaaS Platforms",
-      description: "Build tenant-aware, scalable e-procurement and SaaS engines (powering platforms like Procure247 and Tender247) with secure role-based access and data isolation.",
+      description: "Build tenant-aware, scalable e-procurement and SaaS engines with secure role-based access, dynamic workflow execution, and schema isolation.",
       icon: "server",
       tags: ["Multi-Tenant", "Procurement Tech", "RBAC", "SaaS Arch"]
     },
@@ -119,8 +114,8 @@ const PROFILE = {
   engineeringProjects: [
     {
       id: "procurement-platforms",
-      title: "Procure247 & Tender247 Enterprise Core",
-      badge: "Flagship Production Platforms • iSourcing Technologies",
+      title: "Enterprise SaaS & Procurement Core Platform",
+      badge: "High-Traffic Production SaaS Engine",
       description: "Leading technical architecture and end-to-end engineering for high-traffic procurement and tendering SaaS platforms handling thousands of transactions, bids, and enterprise vendors.",
       technologies: [
         "Java 17", "Spring Boot", "Angular", "MySQL", "Docker",
@@ -131,22 +126,6 @@ const PROFILE = {
         "Engineered multi-tenant isolation, dynamic document generation, and role-based workflows",
         "Streamlined production deployments with Docker containerization and Nginx reverse proxies",
         "Led engineering team across sprint planning, code quality, and production support"
-      ]
-    },
-    {
-      id: "ebg-platform",
-      title: "Enterprise eBG Management Platform",
-      badge: "Enterprise Fintech & Guarantee Workflows",
-      description: "Enterprise platform for managing electronic bank guarantee workflows with external system integrations, document processing, secure communication and notification workflows.",
-      technologies: [
-        "Java", "Spring Boot", "Angular / JSP", "MySQL", "JPA",
-        "Hibernate", "REST APIs", "RSA", "AES", "WebSocket", "Docker", "Linux"
-      ],
-      highlights: [
-        "End-to-end electronic bank guarantee lifecycle management",
-        "Document parsing & generation via PDFBox and Apache POI",
-        "Encrypted payload exchange utilizing RSA and AES algorithms",
-        "Real-time status updates via WebSocket channels"
       ]
     },
     {
@@ -163,6 +142,22 @@ const PROFILE = {
         "Idempotent webhook handlers and automatic payment status polling",
         "Cryptographic checksum verification and audit logging",
         "High-reliability failover and automated reconciliation workflows"
+      ]
+    },
+    {
+      id: "ebg-platform",
+      title: "Enterprise eBG Management Platform",
+      badge: "Enterprise Fintech & Guarantee Workflows",
+      description: "Enterprise platform for managing electronic bank guarantee workflows with external system integrations, document processing, secure communication and notification workflows.",
+      technologies: [
+        "Java", "Spring Boot", "Angular / JSP", "MySQL", "JPA",
+        "Hibernate", "REST APIs", "RSA", "AES", "WebSocket", "Docker", "Linux"
+      ],
+      highlights: [
+        "End-to-end electronic bank guarantee lifecycle management",
+        "Document parsing & generation via PDFBox and Apache POI",
+        "Encrypted payload exchange utilizing RSA and AES algorithms",
+        "Real-time status updates via WebSocket channels"
       ]
     }
   ],
@@ -187,7 +182,7 @@ const PROFILE = {
   about: {
     headline: "I am a Technical Lead who architects, builds, and deploys complete systems end-to-end.",
     paragraphs: [
-      "Currently serving as Team Lead at iSourcing Technologies, where I lead the engineering of mission-critical e-procurement and SaaS platforms including Procure247 and Tender247.",
+      "Serving as Team Lead for enterprise SaaS and procurement tech, where I lead the engineering of mission-critical platforms handling heavy traffic and enterprise transactions.",
       "I don't just write backend code — I drive the entire product engineering lifecycle: from Angular UI design and Spring Boot microservices to multi-gateway payment processing (CCAvenue, Razorpay, EasyPay, SmartHub, Paytm), database schemas, Docker containerization, and production Linux/Nginx infrastructure.",
       "I take pride in mentoring engineers, enforcing clean architecture standards, ensuring robust security with RSA/AES, and maintaining high-availability production environments."
     ]
@@ -226,12 +221,12 @@ const PROFILE = {
   experience: [
     {
       role: "Team Lead / Technical Lead",
-      company: "iSourcing Technologies (Procure247 • Tender247)",
+      company: "Enterprise Software & SaaS Platforms",
       period: "Present",
       location: "Enterprise SaaS & Procurement Tech",
       type: "Full-time",
       responsibilities: [
-        "Leading the end-to-end engineering and technical architecture for flagship platforms (procure247.com & tender247.com)",
+        "Leading end-to-end engineering and technical architecture for high-volume enterprise platforms",
         "Architecting full-stack enterprise solutions using Java 17, Spring Boot, Angular, and MySQL",
         "Integrating and managing comprehensive multi-payment gateways: CCAvenue, Razorpay, ICICI EasyPay, HDFC SmartHub, and Paytm",
         "Managing Docker containerization, Linux servers, Nginx reverse proxies, Tomcat, and production deployments",
