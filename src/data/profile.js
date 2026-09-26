@@ -24,6 +24,22 @@ const PROFILE = {
   formEndpoint: "https://api.web3forms.com/submit",
   web3formsAccessKey: "33f076bd-3f9c-423c-a762-2ef9488bd521",
 
+  // AI Chatbot Configuration (Powered by Google Gemini)
+  chatbot: {
+    botName: "Ankit AI Copilot",
+    tagline: "Powered by Google Gemini & Technical Knowledge Base",
+    avatar: "⚡",
+    defaultModel: "gemini-1.5-flash",
+    initialMessage: "Hi! 👋 I'm Ankit's AI Technical Assistant. Ask me anything about Ankit's full-stack architecture, Java 21, Spring Boot, payment gateways, or send a project inquiry directly to his email!",
+    suggestedPrompts: [
+      { label: "⚡ Core Tech Stack", query: "What is Ankit's core technology stack and architecture experience?" },
+      { label: "💳 Payment Gateways", query: "How does Ankit handle CCAvenue, Razorpay, EasyPay, and Paytm integrations?" },
+      { label: "🏢 Multi-Tenant SaaS", query: "Can you explain Ankit's experience with multi-tenant SaaS platforms?" },
+      { label: "🐳 Docker & DevOps", query: "How does Ankit deploy applications using Docker, Linux, and Nginx?" },
+      { label: "📩 Discuss Project / Hire", query: "I'd like to discuss a project or send an inquiry to Ankit." }
+    ]
+  },
+
   // Core Hero Stack
   heroStack: [
     { name: "Java 21 (LTS)", icon: "devicon-java-plain" },
