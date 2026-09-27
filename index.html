@@ -28,8 +28,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-  <!-- Central Profile Data Configuration Script -->
+  <!-- Central Profile Data & Pro Suite Engine -->
   <script src="src/data/profile.js"></script>
+  <script src="src/js/pro-suite.js"></script>
 
   <script>
     tailwind.config = {
@@ -59,12 +60,22 @@
           },
           animation: {
             'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'cursor': 'blink 1.1s step-start infinite'
+            'cursor': 'blink 1.1s step-start infinite',
+            'scanline': 'scanline 8s linear infinite',
+            'flow-pulse': 'flowPulse 2s ease-in-out infinite'
           },
           keyframes: {
             blink: {
               '0%, 100%': { opacity: '1' },
               '50%': { opacity: '0' }
+            },
+            scanline: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(1000%)' }
+            },
+            flowPulse: {
+              '0%, 100%': { opacity: '0.4', transform: 'scale(0.95)' },
+              '50%': { opacity: '1', transform: 'scale(1.05)' }
             }
           }
         }
@@ -90,7 +101,7 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
     }
 
-    /* Subtle, clean dark scrollbars (No ugly thick orange bars!) */
+    /* Subtle, clean dark scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
@@ -154,11 +165,66 @@
       transform: translateY(-4px);
     }
 
+    /* ─── PRO SUITE SPOTLIGHT GLOW ON CARDS (Linear / Raycast Style) ─── */
+    .spotlight-card {
+      position: relative;
+    }
+    .spotlight-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: radial-gradient(350px circle at var(--mouse-x, -200px) var(--mouse-y, -200px), rgba(255, 107, 43, 0.4), transparent 45%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 20;
+    }
+    .spotlight-card:hover::before {
+      opacity: 1;
+    }
+
+    /* ─── 3D PERSPECTIVE TILT CARDS ─── */
+    .tilt-card {
+      transform-style: preserve-3d;
+      transition: transform 0.15s ease-out, box-shadow 0.25s ease-out;
+      will-change: transform;
+    }
+
+    /* ─── PULSING DATA FLOW BEAMS ─── */
+    @keyframes pulseBeam {
+      0% { transform: translateY(-100%); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(200%); opacity: 0; }
+    }
+    .data-beam {
+      position: absolute;
+      width: 2px;
+      height: 24px;
+      background: linear-gradient(180deg, transparent, #FF6B2B, #38BDF8);
+      animation: pulseBeam 2.2s infinite ease-in-out;
+    }
+
     [x-cloak] { display: none !important; }
   </style>
 </head>
 
-<body class="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased selection:bg-accent/20 selection:text-accent overflow-x-hidden">
+<body class="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased selection:bg-accent/20 selection:text-accent overflow-x-hidden"
+  @keydown.window.cmd.k.prevent="cmdOpen = !cmdOpen"
+  @keydown.window.ctrl.k.prevent="cmdOpen = !cmdOpen"
+  @keydown.escape.window="cmdOpen = false">
+
+<!-- ═══════════════════════════════════════════════
+     TOP SCROLL READING PROGRESS INDICATOR
+════════════════════════════════════════════════ -->
+<div class="fixed top-0 inset-x-0 h-[2.5px] z-50 pointer-events-none bg-transparent" aria-hidden="true">
+  <div id="scroll-progress-bar" class="h-full bg-gradient-to-r from-accent via-orange-500 to-sky-400 w-0 transition-all duration-75"></div>
+</div>
 
 <!-- ═══════════════════════════════════════════════
      FLOATING TOAST NOTIFICATION
@@ -176,6 +242,127 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════
+     GLOBAL COMMAND PALETTE (Ctrl+K / Cmd+K)
+════════════════════════════════════════════════ -->
+<div x-show="cmdOpen" x-cloak class="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-28 px-4" role="dialog" aria-modal="true">
+  <!-- Backdrop -->
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" @click="cmdOpen = false"></div>
+
+  <!-- Palette Container -->
+  <div x-show="cmdOpen"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0 scale-95 -translate-y-4"
+       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+       x-transition:leave-end="opacity-0 scale-95 -translate-y-4"
+       class="relative w-full max-w-2xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden font-mono z-10 text-zinc-100">
+    
+    <!-- Search Bar -->
+    <div class="flex items-center px-4 py-3.5 border-b border-zinc-800 gap-3">
+      <svg class="w-5 h-5 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input type="text" x-model="cmdSearch" x-ref="cmdInput" placeholder="Type a command, project name, tech stack, or jump to section..."
+        class="w-full bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none font-sans">
+      <kbd class="hidden sm:inline-block px-2 py-0.5 text-[11px] bg-zinc-800 border border-zinc-700 rounded text-zinc-400 font-mono">ESC</kbd>
+    </div>
+
+    <!-- Quick Results List -->
+    <div class="max-h-[360px] overflow-y-auto p-3 space-y-1 terminal-scroll text-xs">
+      
+      <!-- Section: Navigation Jumps -->
+      <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Navigation &amp; Sections</div>
+      
+      <button @click="jumpTo('#hero')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-accent">⚡</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Hero &amp; Live CLI Terminal</span>
+        </span>
+        <span class="text-[11px] text-zinc-500">#hero</span>
+      </button>
+
+      <button @click="jumpTo('#architecture')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-blue-400">🏢</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">System Architecture &amp; Live Request Flow</span>
+        </span>
+        <span class="text-[11px] text-zinc-500">#architecture</span>
+      </button>
+
+      <button @click="jumpTo('#fintech-sandbox')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-emerald-400">💳</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Payment Gateway Cryptography Sandbox</span>
+        </span>
+        <span class="text-[11px] text-zinc-500">#fintech-sandbox</span>
+      </button>
+
+      <button @click="jumpTo('#code-explorer')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-amber-400">📜</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Production Code Architecture Explorer</span>
+        </span>
+        <span class="text-[11px] text-zinc-500">#code-explorer</span>
+      </button>
+
+      <button @click="jumpTo('#projects')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-rose-400">🚀</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Enterprise Projects &amp; Products</span>
+        </span>
+        <span class="text-[11px] text-zinc-500">#projects</span>
+      </button>
+
+      <button @click="jumpTo('#devops')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-teal-400">🐳</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Docker, DevOps &amp; Production Telemetry</span>
+        </span>
+        <span class="text-[11px] text-zinc-500">#devops</span>
+      </button>
+
+      <!-- Section: Actions & Utilities -->
+      <div class="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500 border-t border-zinc-800/80 mt-2">Actions &amp; AI Engine</div>
+
+      <button @click="cmdOpen = false; chatOpen = true" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-amber-400">⚡</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Launch Ankit Nexus AI Assistant</span>
+        </span>
+        <span class="text-[11px] text-accent">Ask AI</span>
+      </button>
+
+      <a :href="profile.resumeUrl" target="_blank" @click="cmdOpen = false" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-emerald-400">📄</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Download Ankit's Resume PDF</span>
+        </span>
+        <span class="text-[11px] text-emerald-400">PDF ↗</span>
+      </a>
+
+      <button @click="dark = !dark; cmdOpen = false" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-zinc-800/80 transition-colors text-left group">
+        <span class="flex items-center gap-2.5">
+          <span class="text-yellow-400">🌓</span>
+          <span class="font-sans font-medium text-zinc-200 group-hover:text-white">Toggle Dark / Light Theme</span>
+        </span>
+        <span class="text-[11px] text-zinc-400">Theme</span>
+      </button>
+
+    </div>
+
+    <!-- Palette Footer Status -->
+    <div class="px-4 py-2.5 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500">
+      <div class="flex items-center gap-3">
+        <span><strong class="text-zinc-300">↑↓</strong> Navigate</span>
+        <span><strong class="text-zinc-300">↵</strong> Select</span>
+        <span><strong class="text-zinc-300">ESC</strong> Close</span>
+      </div>
+      <span class="text-accent font-semibold">Pro Engineer Suite</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
      1. NAVBAR
 ════════════════════════════════════════════════ -->
 <header class="fixed inset-x-0 top-0 z-40 transition-all duration-300"
@@ -183,56 +370,64 @@
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between" aria-label="Main navigation">
 
     <!-- Brand -->
-    <a href="#hero" class="font-display font-bold text-2xl tracking-tight relative z-10 flex items-center gap-1 group">
+    <a href="#hero" class="font-display font-bold text-2xl tracking-tight relative z-10 flex items-center gap-1 group shrink-0 mr-4 xl:mr-8">
       <span class="text-zinc-900 dark:text-white group-hover:text-accent transition-colors">AN</span><span class="text-accent">KIT</span>
       <span class="inline-block w-1.5 h-1.5 rounded-full bg-accent ml-0.5"></span>
     </a>
 
     <!-- Desktop Navigation Links -->
-    <ul class="hidden lg:flex items-center gap-4 xl:gap-6 text-xs xl:text-sm font-medium" role="list">
-      <li><a href="#hero"         class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='hero'?'on !text-zinc-900 dark:!text-white':''">Home</a></li>
-      <li><a href="#about"        class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='about'?'on !text-zinc-900 dark:!text-white':''">About</a></li>
-      <li><a href="#skills"       class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='skills'?'on !text-zinc-900 dark:!text-white':''">Skills</a></li>
-      <li><a href="#experience"   class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='experience'?'on !text-zinc-900 dark:!text-white':''">Experience</a></li>
-      <li><a href="#projects"     class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='projects'?'on !text-zinc-900 dark:!text-white':''">Projects</a></li>
-      <li><a href="#architecture" class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='architecture'?'on !text-zinc-900 dark:!text-white':''">Architecture</a></li>
-      <li><a href="#devops"       class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='devops'?'on !text-zinc-900 dark:!text-white':''">DevOps</a></li>
-      <li><a href="#contact"      class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" :class="s==='contact'?'on !text-zinc-900 dark:!text-white':''">Contact</a></li>
+    <ul class="hidden lg:flex items-center gap-3.5 xl:gap-5 2xl:gap-6 text-xs xl:text-sm font-medium shrink-0" role="list">
+      <li><a href="#hero"         class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='hero'?'on !text-zinc-900 dark:!text-white':''">Home</a></li>
+      <li><a href="#about"        class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='about'?'on !text-zinc-900 dark:!text-white':''">About</a></li>
+      <li><a href="#skills"       class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='skills'?'on !text-zinc-900 dark:!text-white':''">Skills</a></li>
+      <li><a href="#experience"   class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='experience'?'on !text-zinc-900 dark:!text-white':''">Experience</a></li>
+      <li><a href="#projects"     class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='projects'?'on !text-zinc-900 dark:!text-white':''">Projects</a></li>
+      <li><a href="#architecture" class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='architecture'?'on !text-zinc-900 dark:!text-white':''">Architecture</a></li>
+      <li><a href="#fintech-sandbox" class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='fintech-sandbox'?'on !text-zinc-900 dark:!text-white':''">Sandbox</a></li>
+      <li><a href="#devops"       class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='devops'?'on !text-zinc-900 dark:!text-white':''">DevOps</a></li>
+      <li><a href="#contact"      class="nl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors whitespace-nowrap" :class="s==='contact'?'on !text-zinc-900 dark:!text-white':''">Contact</a></li>
     </ul>
 
-    <!-- Right Side Actions: AI Trigger, Theme, Social Links & Resume -->
-    <div class="flex items-center gap-2 sm:gap-2.5">
+    <!-- Right Side Actions: Command Palette, AI Trigger, Theme, Social Links & Resume -->
+    <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
       
-      <!-- Ankit Nexus AI Quick Trigger in Navbar (Hidden on mobile to avoid overcrowding) -->
+      <!-- Command Palette Quick Trigger -->
+      <button @click="cmdOpen = true" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-mono transition-colors" title="Open Command Palette (Ctrl+K)">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span class="text-[11px] font-semibold">Search</span>
+        <kbd class="px-1 py-0.2 text-[9px] bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded text-zinc-500 dark:text-zinc-400 font-mono">⌘K</kbd>
+      </button>
+
+      <!-- Ankit Nexus AI Quick Trigger in Navbar -->
       <button @click="chatOpen = true" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/15 hover:bg-accent/25 border border-accent/40 text-accent dark:text-accent-light text-xs font-mono font-semibold hover:scale-105 active:scale-95 transition-all shadow-sm" title="Open Nexus AI">
         <span class="w-1.5 h-1.5 rounded-full bg-accent animate-ping"></span>
         <span>Ask AI ⚡</span>
       </button>
 
       <!-- Dark / Light toggle -->
-      <button @click="dark=!dark" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 transition-colors" :aria-label="dark?'Light mode':'Dark mode'" title="Toggle theme">
+      <button @click="dark=!dark" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 transition-colors shrink-0" :aria-label="dark?'Light mode':'Dark mode'" title="Toggle theme">
         <svg x-show="!dark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
         <svg x-show="dark"  class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
       </button>
 
       <!-- GitHub -->
-      <a :href="profile.githubUrl" target="_blank" rel="noopener noreferrer" class="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:text-accent dark:hover:text-accent transition-colors" title="GitHub" aria-label="GitHub Profile">
+      <a :href="profile.githubUrl" target="_blank" rel="noopener noreferrer" class="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:text-accent dark:hover:text-accent transition-colors shrink-0" title="GitHub" aria-label="GitHub Profile">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
       </a>
 
       <!-- LinkedIn -->
-      <a :href="profile.linkedinUrl" target="_blank" rel="noopener noreferrer" class="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:text-accent dark:hover:text-accent transition-colors" title="LinkedIn" aria-label="LinkedIn Profile">
+      <a :href="profile.linkedinUrl" target="_blank" rel="noopener noreferrer" class="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:text-accent dark:hover:text-accent transition-colors shrink-0" title="LinkedIn" aria-label="LinkedIn Profile">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
       </a>
 
       <!-- Resume Button -->
-      <a :href="profile.resumeUrl" target="_blank" rel="noopener noreferrer" class="hidden md:inline-flex items-center gap-1.5 bg-accent hover:bg-accent-light text-white text-xs font-semibold px-3.5 py-2 rounded-full transition-all shadow-sm hover:scale-105 active:scale-95">
+      <a :href="profile.resumeUrl" target="_blank" rel="noopener noreferrer" class="hidden md:inline-flex items-center gap-1.5 bg-accent hover:bg-accent-light text-white text-xs font-semibold px-3.5 py-2 rounded-full transition-all shadow-sm hover:scale-105 active:scale-95 shrink-0">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         <span>Resume</span>
       </a>
 
       <!-- Mobile menu trigger -->
-      <button @click="mm=!mm" class="lg:hidden w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300" :aria-expanded="mm" aria-label="Toggle navigation menu">
+      <button @click="mm=!mm" class="lg:hidden w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 shrink-0" :aria-expanded="mm" aria-label="Toggle navigation menu">
         <svg x-show="!mm" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         <svg x-show="mm"  class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
@@ -250,16 +445,17 @@
       <li><a href="#skills"       @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Skills</a></li>
       <li><a href="#experience"   @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Experience</a></li>
       <li><a href="#projects"     @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Projects &amp; Products</a></li>
-      <li><a href="#architecture" @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Architecture</a></li>
+      <li><a href="#architecture" @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Architecture &amp; Flow</a></li>
+      <li><a href="#fintech-sandbox" @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Fintech Sandbox</a></li>
       <li><a href="#devops"       @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">DevOps &amp; Docker</a></li>
       <li><a href="#contact"      @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Contact</a></li>
       <li class="pt-3 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between gap-3">
-        <button @click="mm=false; chatOpen=true" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-white text-xs font-mono font-semibold">
-          Ask Ankit Nexus ⚡
+        <button @click="mm=false; cmdOpen=true" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs font-mono font-medium">
+          ⌘K Search
         </button>
-        <a :href="profile.resumeUrl" @click="mm=false" class="inline-flex items-center gap-2 border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 font-medium text-xs px-4 py-2 rounded-full">
-          Resume PDF →
-        </a>
+        <button @click="mm=false; chatOpen=true" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-white text-xs font-mono font-semibold">
+          Ask Nexus AI ⚡
+        </button>
       </li>
     </ul>
   </div>
@@ -271,6 +467,10 @@
      2. HERO SECTION & INTERACTIVE TERMINAL
 ════════════════════════════════════════════════ -->
 <section id="hero" class="relative min-h-[92vh] flex items-center pt-24 pb-16 overflow-hidden border-b border-zinc-100 dark:border-zinc-900/60">
+  
+  <!-- Interactive Constellation / Particle Network Canvas Background -->
+  <canvas id="hero-particle-canvas" class="absolute inset-0 w-full h-full pointer-events-auto opacity-75 z-0" aria-hidden="true"></canvas>
+
   <!-- Background glow orbs -->
   <div class="absolute top-1/4 right-0 w-[30rem] h-[30rem] bg-accent/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
   <div class="absolute bottom-10 left-[-5%] w-80 h-80 bg-blue-500/5 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
@@ -284,12 +484,12 @@
         <!-- Live Role Badge -->
         <div class="reveal inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-semibold tracking-wide mb-6">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Technical Lead • Full-Stack &amp; Backend Architect</span>
+          <span data-scramble="Technical Lead • Full-Stack &amp; Backend Architect">Technical Lead • Full-Stack &amp; Backend Architect</span>
         </div>
 
-        <!-- Main Heading -->
+        <!-- Main Heading with Cyberpunk Text Scramble -->
         <h1 class="reveal d1 font-display font-bold text-5xl sm:text-6xl lg:text-7xl leading-[1.05] tracking-tight text-zinc-900 dark:text-white mb-6">
-          Hi, I'm <span class="text-accent">Ankit</span>.
+          Hi, I'm <span class="text-accent cursor-pointer" data-scramble="Ankit">Ankit</span>.
         </h1>
 
         <!-- Large Professional Statement -->
@@ -312,8 +512,8 @@
             <span>Ask Nexus AI</span>
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
           </button>
-          <a href="#contact" class="inline-flex items-center justify-center gap-2 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900/60 text-zinc-800 dark:text-zinc-200 font-medium px-5 sm:px-6 py-3 sm:py-3.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-xs sm:text-sm w-full sm:w-auto text-center">
-            <span>Let's Connect</span>
+          <a href="#architecture" class="inline-flex items-center justify-center gap-2 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900/60 text-zinc-800 dark:text-zinc-200 font-medium px-5 sm:px-6 py-3 sm:py-3.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-xs sm:text-sm w-full sm:w-auto text-center">
+            <span>Live Architecture ⚡</span>
           </a>
         </div>
 
@@ -321,22 +521,22 @@
         <div class="reveal d4 pt-6 border-t border-zinc-200/80 dark:border-zinc-800/80">
           <p class="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-semibold mb-3">Core Stack &amp; Enterprise Runtime</p>
           <div class="flex flex-wrap items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-accent transition-colors">
               <span class="w-2 h-2 rounded-full bg-red-500"></span> Java 21 (LTS)
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Spring Boot
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-accent transition-colors">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Spring Boot 3
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              <span class="w-2 h-2 rounded-full bg-rose-500"></span> Angular
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-accent transition-colors">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span> Angular 17
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              <span class="w-2 h-2 rounded-full bg-sky-500"></span> Docker
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-accent transition-colors">
+              <span class="w-2 h-2 rounded-full bg-sky-500"></span> Docker Containers
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              <span class="w-2 h-2 rounded-full bg-blue-500"></span> MySQL
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-accent transition-colors">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span> MySQL 8 (ACID)
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:border-accent transition-colors">
               <span class="w-2 h-2 rounded-full bg-teal-500"></span> Linux / Nginx
             </span>
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs font-semibold text-accent">
@@ -354,7 +554,7 @@
           <div class="absolute -inset-1 bg-gradient-to-r from-accent/20 via-blue-500/15 to-purple-500/20 rounded-2xl blur-lg opacity-70"></div>
 
           <!-- Terminal Container -->
-          <div class="relative bg-zinc-950 text-zinc-100 rounded-2xl border border-zinc-800/90 shadow-2xl overflow-hidden font-mono text-xs">
+          <div class="relative bg-zinc-950 text-zinc-100 rounded-2xl border border-zinc-800/90 shadow-2xl overflow-hidden font-mono text-xs spotlight-card">
             
             <!-- Window Titlebar -->
             <div class="px-4 py-3 bg-zinc-900/95 border-b border-zinc-800 flex items-center justify-between">
@@ -428,18 +628,18 @@
 
 
 <!-- ═══════════════════════════════════════════════
-     3. HERO FOCUS CARDS (LEADERSHIP & DOMAIN FOCUS)
+     3. HERO FOCUS CARDS WITH DYNAMIC COUNTERS (SPOTLIGHT + 3D TILT)
 ════════════════════════════════════════════════ -->
 <section class="py-12 bg-zinc-50/60 dark:bg-zinc-900/30 border-b border-zinc-100 dark:border-zinc-900/60">
   <div class="max-w-7xl mx-auto px-6">
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
       
       <!-- Card 1: Leadership & Architecture -->
-      <div class="reveal d1 card-h bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
+      <div class="reveal d1 spotlight-card tilt-card bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-bold uppercase tracking-wider text-accent">Leadership</span>
-          <div class="w-8 h-8 rounded-lg bg-orange-500/10 text-accent flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <div class="w-8 h-8 rounded-lg bg-orange-500/10 text-accent flex items-center justify-center font-mono font-bold text-xs">
+            <span data-counter="100" data-counter-suffix="%">100%</span>
           </div>
         </div>
         <h3 class="font-display font-bold text-xl text-zinc-900 dark:text-white mb-1">Technical Lead &amp; Architecture</h3>
@@ -447,11 +647,11 @@
       </div>
 
       <!-- Card 2: Backend & Microservices -->
-      <div class="reveal d2 card-h bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
+      <div class="reveal d2 spotlight-card tilt-card bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-bold uppercase tracking-wider text-accent">Full-Stack Core</span>
-          <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center font-mono font-bold text-xs">
+            <span data-counter="21" data-counter-prefix="v">v21</span>
           </div>
         </div>
         <h3 class="font-display font-bold text-xl text-zinc-900 dark:text-white mb-1">Java 21 + Spring + Angular</h3>
@@ -459,11 +659,11 @@
       </div>
 
       <!-- Card 3: Payments & Fintech -->
-      <div class="reveal d3 card-h bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
+      <div class="reveal d3 spotlight-card tilt-card bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-bold uppercase tracking-wider text-accent">Payments</span>
-          <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center font-mono font-bold text-xs">
+            <span data-counter="5" data-counter-suffix="+">5+</span>
           </div>
         </div>
         <h3 class="font-display font-bold text-xl text-zinc-900 dark:text-white mb-1">Multi-Payment Ecosystem</h3>
@@ -471,11 +671,11 @@
       </div>
 
       <!-- Card 4: DevOps & Containers -->
-      <div class="reveal d4 card-h bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
+      <div class="reveal d4 spotlight-card tilt-card bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:border-accent/60">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-bold uppercase tracking-wider text-accent">Containers &amp; DevOps</span>
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-mono font-bold text-xs">
+            <span data-counter="99.9" data-counter-suffix="%">99.9%</span>
           </div>
         </div>
         <h3 class="font-display font-bold text-xl text-zinc-900 dark:text-white mb-1">Docker + Linux + Nginx</h3>
@@ -1320,6 +1520,124 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════
+         INTERACTIVE LIVE SYSTEM REQUEST SIMULATOR
+    ════════════════════════════════════════════════ -->
+    <div class="reveal d2 bg-zinc-900 text-white rounded-3xl p-6 sm:p-8 border border-zinc-800 shadow-xl mb-12 spotlight-card">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-zinc-800">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs font-mono uppercase text-accent font-bold tracking-wider">Live System Simulation</span>
+          </div>
+          <h3 class="text-xl font-display font-bold text-white">Interactive Enterprise Request &amp; Hop Latency Explorer</h3>
+        </div>
+        <button @click="runSimulatedRequest()" :disabled="simulatingRequest"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-accent to-orange-600 hover:from-accent-light hover:to-orange-500 text-white text-xs font-mono font-bold shadow-lg shadow-accent/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span x-show="!simulatingRequest">⚡ Simulate Live API Request</span>
+          <span x-show="simulatingRequest" class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span>Tracing Pipeline Hop (<span x-text="simStep + 1"></span>/5)...</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Real-Time Pipeline Hop Visualizer -->
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-6">
+        
+        <!-- Hop 1: Angular Client -->
+        <div class="p-3.5 rounded-xl border transition-all"
+             :class="simStep === 0 ? 'bg-rose-950/70 border-rose-500 ring-2 ring-rose-500/40' : (simStep > 0 ? 'bg-zinc-950/80 border-emerald-500/40 text-emerald-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400')">
+          <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+            <span>01. CLIENT</span>
+            <span x-show="simStep >= 0" class="text-emerald-400 font-bold">✓ 2ms</span>
+          </div>
+          <div class="font-bold text-xs text-white">Angular 17 SPA</div>
+          <div class="text-[10px] text-zinc-400">JWT Interceptor + DTO</div>
+        </div>
+
+        <!-- Hop 2: Nginx Gateway -->
+        <div class="p-3.5 rounded-xl border transition-all"
+             :class="simStep === 1 ? 'bg-teal-950/70 border-teal-500 ring-2 ring-teal-500/40' : (simStep > 1 ? 'bg-zinc-950/80 border-emerald-500/40 text-emerald-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400')">
+          <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+            <span>02. INGRESS</span>
+            <span x-show="simStep >= 1" class="text-emerald-400 font-bold">✓ 3ms</span>
+          </div>
+          <div class="font-bold text-xs text-white">Nginx Reverse Proxy</div>
+          <div class="text-[10px] text-zinc-400">TLS 1.3 + Leaky Bucket</div>
+        </div>
+
+        <!-- Hop 3: Spring Boot Microservices -->
+        <div class="p-3.5 rounded-xl border transition-all"
+             :class="simStep === 2 ? 'bg-emerald-950/70 border-emerald-500 ring-2 ring-emerald-500/40' : (simStep > 2 ? 'bg-zinc-950/80 border-emerald-500/40 text-emerald-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400')">
+          <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+            <span>03. BACKEND</span>
+            <span x-show="simStep >= 2" class="text-emerald-400 font-bold">✓ 4ms</span>
+          </div>
+          <div class="font-bold text-xs text-white">Spring Boot 3 (Java 21)</div>
+          <div class="text-[10px] text-zinc-400">Virtual Threads + Security</div>
+        </div>
+
+        <!-- Hop 4: Tenant Resolution & MySQL -->
+        <div class="p-3.5 rounded-xl border transition-all"
+             :class="simStep === 3 ? 'bg-purple-950/70 border-purple-500 ring-2 ring-purple-500/40' : (simStep > 3 ? 'bg-zinc-950/80 border-emerald-500/40 text-emerald-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400')">
+          <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+            <span>04. SAAS ISOLATION</span>
+            <span x-show="simStep >= 3" class="text-emerald-400 font-bold">✓ 3ms</span>
+          </div>
+          <div class="font-bold text-xs text-white">ThreadLocal Schema</div>
+          <div class="text-[10px] text-zinc-400">MySQL 8 HikariCP ACID</div>
+        </div>
+
+        <!-- Hop 5: Payment Gateway Engine -->
+        <div class="p-3.5 rounded-xl border transition-all"
+             :class="simStep === 4 ? 'bg-blue-950/70 border-blue-500 ring-2 ring-blue-500/40' : (simStep > 4 ? 'bg-zinc-950/80 border-emerald-500/40 text-emerald-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400')">
+          <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+            <span>05. FINTECH</span>
+            <span x-show="simStep >= 4" class="text-emerald-400 font-bold">✓ 6ms</span>
+          </div>
+          <div class="font-bold text-xs text-white">CCAvenue / Razorpay</div>
+          <div class="text-[10px] text-zinc-400">HMAC Checksum &amp; AES-256</div>
+        </div>
+
+      </div>
+
+      <!-- Live Headers & Telemetry Log Box -->
+      <div class="grid md:grid-cols-2 gap-4">
+        
+        <!-- Live Request Headers Preview -->
+        <div class="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 font-mono text-[11px] space-y-1.5">
+          <div class="text-xs text-zinc-400 font-bold flex items-center justify-between pb-1.5 border-b border-zinc-800">
+            <span class="text-accent">Request Payload &amp; Security Headers</span>
+            <span class="text-emerald-400">HTTP/2 POST 200 OK</span>
+          </div>
+          <div class="text-zinc-400">Host: <span class="text-zinc-200">api.ankit-nexus.internal</span></div>
+          <div class="text-zinc-400">Authorization: <span class="text-sky-300">Bearer eyJhbGciOiJSUzI1NiIsInR5c...</span></div>
+          <div class="text-zinc-400">X-Tenant-ID: <span class="text-amber-300">enterprise_saas_tenant_849</span></div>
+          <div class="text-zinc-400">X-Idempotency-Key: <span class="text-purple-300">idemp_8f9a4e21b07c</span></div>
+          <div class="text-zinc-400">X-HMAC-Signature: <span class="text-emerald-300">a6b8c9d0e1f23456...</span></div>
+        </div>
+
+        <!-- Live Simulation Console -->
+        <div class="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 font-mono text-[11px] space-y-1.5 max-h-[140px] overflow-y-auto terminal-scroll">
+          <div class="text-xs text-zinc-400 font-bold pb-1.5 border-b border-zinc-800 flex items-center justify-between">
+            <span class="text-emerald-400">Live Tracing Telemetry</span>
+            <span class="text-zinc-500" x-text="simLatency ? (simLatency + 'ms total') : 'Idle'"></span>
+          </div>
+          <template x-for="(log, lIdx) in simLogs" :key="lIdx">
+            <div class="flex items-start gap-1.5 text-zinc-300">
+              <span class="text-accent">⚡</span>
+              <span x-text="log"></span>
+            </div>
+          </template>
+          <div x-show="simLogs.length === 0" class="text-zinc-500 italic">
+            Click "Simulate Live API Request" above to execute real-time tracing across the architecture stack.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
          FINTECH & SECURITY: 5-STEP PAYMENT FLOW
     ════════════════════════════════════════════════ -->
     <div class="reveal d2 bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-10 border border-zinc-200/80 dark:border-zinc-800 shadow-sm mb-12">
@@ -1355,6 +1673,283 @@
             Next Step →
           </button>
         </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     FINTECH & PAYMENT GATEWAY CRYPTOGRAPHY SANDBOX
+════════════════════════════════════════════════ -->
+<section id="fintech-sandbox" class="py-24 bg-white dark:bg-zinc-950 border-b border-zinc-100 dark:border-zinc-900/60">
+  <div class="max-w-7xl mx-auto px-6">
+    
+    <div class="mb-14 max-w-2xl">
+      <div class="inline-flex items-center gap-2 text-xs font-semibold text-accent tracking-widest uppercase mb-3">
+        <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+        <span>Interactive Security Sandbox</span>
+      </div>
+      <h2 class="reveal d1 font-display font-bold text-4xl md:text-5xl text-zinc-900 dark:text-white mb-4">Payment Gateway &amp; Crypto Simulator</h2>
+      <p class="reveal d2 text-zinc-600 dark:text-zinc-400 text-base leading-relaxed">
+        Test real-world cryptographic handshake algorithms, AES-256 payload encryption, HMAC signature generation, and idempotent webhook reconciliation across 5 major aggregators.
+      </p>
+    </div>
+
+    <div class="bg-zinc-950 text-white rounded-3xl border border-zinc-800 p-6 sm:p-10 shadow-2xl spotlight-card">
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+
+        <!-- Controls Column -->
+        <div class="lg:col-span-5 space-y-5">
+          <div>
+            <label class="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-2">Select Payment Aggregator</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button @click="simCryptoGateway = 'ccavenue'" class="px-3 py-2 rounded-xl border text-xs font-mono text-left transition-all"
+                :class="simCryptoGateway === 'ccavenue' ? 'bg-accent text-white border-accent shadow-md' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'">
+                <span class="font-bold block">CCAvenue</span>
+                <span class="text-[10px] opacity-75">AES-256-CBC</span>
+              </button>
+              <button @click="simCryptoGateway = 'razorpay'" class="px-3 py-2 rounded-xl border text-xs font-mono text-left transition-all"
+                :class="simCryptoGateway === 'razorpay' ? 'bg-accent text-white border-accent shadow-md' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'">
+                <span class="font-bold block">Razorpay</span>
+                <span class="text-[10px] opacity-75">HMAC-SHA256</span>
+              </button>
+              <button @click="simCryptoGateway = 'smarthub'" class="px-3 py-2 rounded-xl border text-xs font-mono text-left transition-all"
+                :class="simCryptoGateway === 'smarthub' ? 'bg-accent text-white border-accent shadow-md' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'">
+                <span class="font-bold block">HDFC SmartHub</span>
+                <span class="text-[10px] opacity-75">Dual SHA-512</span>
+              </button>
+              <button @click="simCryptoGateway = 'paytm'" class="px-3 py-2 rounded-xl border text-xs font-mono text-left transition-all"
+                :class="simCryptoGateway === 'paytm' ? 'bg-accent text-white border-accent shadow-md' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'">
+                <span class="font-bold block">Paytm PG</span>
+                <span class="text-[10px] opacity-75">Checksum V2</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Input Fields -->
+          <div class="space-y-3 font-mono text-xs">
+            <div>
+              <label class="block text-[11px] text-zinc-400 mb-1">Order Reference ID</label>
+              <input type="text" x-model="simCryptoOrderId" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-accent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-zinc-400 mb-1">Transaction Amount (INR)</label>
+              <input type="number" x-model="simCryptoAmount" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-accent">
+            </div>
+          </div>
+
+          <button @click="runCryptoSimulation()" :disabled="simulatingCrypto"
+            class="w-full py-3.5 rounded-xl bg-gradient-to-r from-accent to-orange-600 hover:from-accent-light hover:to-orange-500 text-white font-mono font-bold text-xs shadow-lg shadow-accent/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
+            <span x-show="!simulatingCrypto">⚡ Run Cryptographic Transaction Pipeline</span>
+            <span x-show="simulatingCrypto">Executing Pipeline Step (<span x-text="cryptoStep + 1"></span>/4)...</span>
+          </button>
+        </div>
+
+        <!-- Live Pipeline & Output Console -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- 4 Steps Indicator -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
+            <div class="p-2.5 rounded-xl border" :class="cryptoStep >= 0 ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500'">
+              <div class="text-[10px] uppercase font-bold">1. Payload Encrypt</div>
+              <div class="text-[11px] text-white font-semibold">AES-256 Key</div>
+            </div>
+            <div class="p-2.5 rounded-xl border" :class="cryptoStep >= 1 ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500'">
+              <div class="text-[10px] uppercase font-bold">2. Checksum</div>
+              <div class="text-[11px] text-white font-semibold">HMAC-SHA256</div>
+            </div>
+            <div class="p-2.5 rounded-xl border" :class="cryptoStep >= 2 ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500'">
+              <div class="text-[10px] uppercase font-bold">3. Webhook Callback</div>
+              <div class="text-[11px] text-white font-semibold">Replay Verified</div>
+            </div>
+            <div class="p-2.5 rounded-xl border" :class="cryptoStep >= 3 ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500'">
+              <div class="text-[10px] uppercase font-bold">4. Ledger Commit</div>
+              <div class="text-[11px] text-white font-semibold">ACID Success</div>
+            </div>
+          </div>
+
+          <!-- Real-Time Cryptographic Console Output -->
+          <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 font-mono text-xs space-y-2 min-h-[220px]">
+            <div class="flex items-center justify-between pb-2 border-b border-zinc-800 text-[11px] text-zinc-400">
+              <span class="text-accent font-bold">Crypto Audit Logs</span>
+              <span class="text-emerald-400">TLS 1.3 / ISO-8583 Compliant</span>
+            </div>
+            <template x-for="(log, idx) in cryptoLogs" :key="idx">
+              <div class="leading-relaxed text-zinc-300">
+                <span class="text-emerald-400">▶</span> <span x-text="log"></span>
+              </div>
+            </template>
+            <div x-show="cryptoLogs.length === 0" class="text-zinc-500 italic pt-4">
+              Select an aggregator and click "Run Cryptographic Transaction Pipeline" to inspect AES encryption and HMAC checksum generation in real-time.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     PRODUCTION CODE ARCHITECTURE EXPLORER
+════════════════════════════════════════════════ -->
+<section id="code-explorer" class="py-24 bg-zinc-50/70 dark:bg-zinc-900/40 border-b border-zinc-100 dark:border-zinc-900/60">
+  <div class="max-w-7xl mx-auto px-6">
+    
+    <div class="mb-14 max-w-2xl">
+      <div class="inline-flex items-center gap-2 text-xs font-semibold text-accent tracking-widest uppercase mb-3">
+        <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+        <span>Production Grade Patterns</span>
+      </div>
+      <h2 class="reveal d1 font-display font-bold text-4xl md:text-5xl text-zinc-900 dark:text-white mb-4">Production Code Explorer</h2>
+      <p class="reveal d2 text-zinc-600 dark:text-zinc-400 text-base leading-relaxed">
+        Inspect real architectural implementations: Multi-tenant schema routing in Spring Boot, CCAvenue AES-256 cryptographic helpers, multi-stage Docker builds, and Nginx reverse proxies.
+      </p>
+    </div>
+
+    <!-- Code Viewer Container -->
+    <div class="bg-zinc-950 text-white rounded-3xl border border-zinc-800 shadow-2xl overflow-hidden spotlight-card">
+      
+      <!-- Tab Bar -->
+      <div class="px-4 py-3 bg-zinc-900 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button @click="activeCodeTab = 'tenant-filter'" class="px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all"
+            :class="activeCodeTab === 'tenant-filter' ? 'bg-accent text-white shadow-sm' : 'bg-zinc-800 text-zinc-400 hover:text-white'">
+            TenantContextFilter.java
+          </button>
+          <button @click="activeCodeTab = 'crypto-util'" class="px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all"
+            :class="activeCodeTab === 'crypto-util' ? 'bg-accent text-white shadow-sm' : 'bg-zinc-800 text-zinc-400 hover:text-white'">
+            CCAvenueAES256Crypto.java
+          </button>
+          <button @click="activeCodeTab = 'dockerfile'" class="px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all"
+            :class="activeCodeTab === 'dockerfile' ? 'bg-accent text-white shadow-sm' : 'bg-zinc-800 text-zinc-400 hover:text-white'">
+            Dockerfile (Java 21 Multi-Stage)
+          </button>
+          <button @click="activeCodeTab = 'nginx-conf'" class="px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all"
+            :class="activeCodeTab === 'nginx-conf' ? 'bg-accent text-white shadow-sm' : 'bg-zinc-800 text-zinc-400 hover:text-white'">
+            nginx-gateway.conf
+          </button>
+        </div>
+
+        <!-- Copy Code Button -->
+        <button @click="copyCode(activeCodeTab)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-mono transition-colors border border-zinc-700">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+          <span>Copy Snippet</span>
+        </button>
+      </div>
+
+      <!-- Code Content Area -->
+      <div class="p-5 font-mono text-xs leading-relaxed overflow-x-auto terminal-scroll bg-zinc-950 text-zinc-200">
+        
+        <!-- Tab 1: Tenant Filter -->
+        <pre x-show="activeCodeTab === 'tenant-filter'" class="text-zinc-300"><code><span class="text-rose-400">package</span> com.ankit.nexus.security;
+
+<span class="text-rose-400">import</span> jakarta.servlet.FilterChain;
+<span class="text-rose-400">import</span> jakarta.servlet.http.HttpServletRequest;
+<span class="text-rose-400">import</span> jakarta.servlet.http.HttpServletResponse;
+<span class="text-rose-400">import</span> org.springframework.stereotype.Component;
+<span class="text-rose-400">import</span> org.springframework.web.filter.OncePerRequestFilter;
+
+<span class="text-emerald-400">/**
+ * Multi-Tenant Context Resolution Filter (Java 21 Virtual Threads Safe)
+ * Author: Ankit Chauhan (Technical Lead)
+ */</span>
+<span class="text-accent">@Component</span>
+<span class="text-rose-400">public class</span> <span class="text-yellow-300 font-bold">TenantContextFilter</span> <span class="text-rose-400">extends</span> OncePerRequestFilter {
+
+    <span class="text-rose-400">private static final</span> String HEADER_TENANT_ID = <span class="text-emerald-300">"X-Tenant-ID"</span>;
+
+    <span class="text-accent">@Override</span>
+    <span class="text-rose-400">protected void</span> doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
+                                    FilterChain filterChain) <span class="text-rose-400">throws</span> Exception {
+        String tenantId = request.getHeader(HEADER_TENANT_ID);
+        <span class="text-rose-400">if</span> (tenantId != <span class="text-rose-400">null</span> && !tenantId.isBlank()) {
+            TenantContextHolder.setTenantId(tenantId);
+        } <span class="text-rose-400">else</span> {
+            TenantContextHolder.setTenantId(<span class="text-emerald-300">"default_public"</span>);
+        }
+        <span class="text-rose-400">try</span> {
+            filterChain.doFilter(request, response);
+        } <span class="text-rose-400">finally</span> {
+            <span class="text-zinc-500">// Prevent memory leak in thread pools & virtual thread worker carrier</span>
+            TenantContextHolder.clear();
+        }
+    }
+}</code></pre>
+
+        <!-- Tab 2: Crypto Util -->
+        <pre x-show="activeCodeTab === 'crypto-util'" class="text-zinc-300"><code><span class="text-rose-400">package</span> com.ankit.nexus.fintech.crypto;
+
+<span class="text-rose-400">import</span> javax.crypto.Cipher;
+<span class="text-rose-400">import</span> javax.crypto.spec.SecretKeySpec;
+<span class="text-rose-400">import</span> java.nio.charset.StandardCharsets;
+<span class="text-rose-400">import</span> java.security.MessageDigest;
+
+<span class="text-emerald-400">/**
+ * CCAvenue & Payment Aggregator AES-256-CBC Cryptographic Engine
+ * Author: Ankit Chauhan (Technical Lead)
+ */</span>
+<span class="text-rose-400">public class</span> <span class="text-yellow-300 font-bold">CCAvenueAES256Crypto</span> {
+
+    <span class="text-rose-400">public static</span> String encrypt(String plainText, String workingKey) <span class="text-rose-400">throws</span> Exception {
+        MessageDigest md = MessageDigest.getInstance(<span class="text-emerald-300">"MD5"</span>);
+        <span class="text-rose-400">byte</span>[] keyBytes = md.digest(workingKey.getBytes(StandardCharsets.UTF_8));
+        SecretKeySpec keySpec = <span class="text-rose-400">new</span> SecretKeySpec(keyBytes, <span class="text-emerald-300">"AES"</span>);
+
+        Cipher cipher = Cipher.getInstance(<span class="text-emerald-300">"AES"</span>);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+        <span class="text-rose-400">byte</span>[] encrypted = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+        <span class="text-rose-400">return</span> bytesToHex(encrypted);
+    }
+}</code></pre>
+
+        <!-- Tab 3: Dockerfile -->
+        <pre x-show="activeCodeTab === 'dockerfile'" class="text-zinc-300"><code><span class="text-zinc-500"># ─── STAGE 1: Build JAR with Maven & Eclipse Temurin Java 21 ───</span>
+<span class="text-rose-400">FROM</span> maven:3.9.6-eclipse-temurin-21-alpine <span class="text-rose-400">AS</span> build
+<span class="text-rose-400">WORKDIR</span> /app
+<span class="text-rose-400">COPY</span> pom.xml .
+<span class="text-rose-400">RUN</span> mvn dependency:go-offline -B
+<span class="text-rose-400">COPY</span> src ./src
+<span class="text-rose-400">RUN</span> mvn clean package -DskipTests -B
+
+<span class="text-zinc-500"># ─── STAGE 2: Hardened Minimal Production Image ───</span>
+<span class="text-rose-400">FROM</span> eclipse-temurin:21-jre-alpine
+<span class="text-rose-400">WORKDIR</span> /app
+<span class="text-rose-400">RUN</span> addgroup -S appgroup && adduser -S appuser -G appgroup
+<span class="text-rose-400">COPY</span> --from=build /app/target/*.jar app.jar
+<span class="text-rose-400">USER</span> appuser
+<span class="text-rose-400">EXPOSE</span> 8080
+<span class="text-rose-400">ENTRYPOINT</span> ["java", "-XX:+UseZGC", "-XX:+ZGenerational", "-jar", "app.jar"]</code></pre>
+
+        <!-- Tab 4: Nginx Conf -->
+        <pre x-show="activeCodeTab === 'nginx-conf'" class="text-zinc-300"><code><span class="text-zinc-500"># Upstream load balancing to containerized Spring Boot backend</span>
+<span class="text-rose-400">upstream</span> spring_backend {
+    <span class="text-rose-400">server</span> app_core_1:8080 max_fails=3 fail_timeout=10s;
+    <span class="text-rose-400">keepalive</span> 32;
+}
+
+<span class="text-rose-400">server</span> {
+    <span class="text-rose-400">listen</span> 443 ssl http2;
+    <span class="text-rose-400">server_name</span> ankitnexus.com;
+
+    <span class="text-rose-400">ssl_certificate</span>     /etc/letsencrypt/live/fullchain.pem;
+    <span class="text-rose-400">ssl_certificate_key</span> /etc/letsencrypt/live/privkey.pem;
+    <span class="text-rose-400">ssl_protocols</span>       TLSv1.2 TLSv1.3;
+
+    <span class="text-rose-400">location</span> /api/ {
+        <span class="text-rose-400">proxy_pass</span> http://spring_backend;
+        <span class="text-rose-400">proxy_set_header</span> Host $host;
+        <span class="text-rose-400">proxy_set_header</span> X-Real-IP $remote_addr;
+        <span class="text-rose-400">proxy_set_header</span> X-Tenant-ID $http_x_tenant_id;
+    }
+}</code></pre>
+
       </div>
     </div>
 
@@ -1474,47 +2069,65 @@
         </div>
       </div>
 
-      <!-- Right: Terminal Visual -->
+      <!-- Right: Live DevOps Telemetry Dashboard Widget -->
       <div class="lg:col-span-5 reveal d3">
-        <div class="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden font-mono text-xs">
+        <div class="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden font-mono text-xs spotlight-card">
           <div class="px-4 py-3 bg-zinc-900/90 border-b border-zinc-800 flex items-center justify-between text-zinc-400">
             <div class="flex items-center gap-1.5">
               <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
               <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
             </div>
-            <span class="text-[11px] text-zinc-400">docker-host: ~/enterprise-app</span>
-            <span class="text-emerald-400 text-[10px]">● active</span>
+            <span class="text-[11px] text-zinc-300 font-semibold">Production Telemetry Dashboard</span>
+            <span class="inline-flex items-center gap-1 text-emerald-400 text-[10px] bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/50">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>LIVE</span>
+            </span>
           </div>
 
-          <div class="p-5 space-y-3.5 text-zinc-300">
-            <div>
-              <div class="text-zinc-500 text-[11px]"># Pull latest release and build containers</div>
-              <div class="text-accent font-semibold">$ git pull &amp;&amp; docker compose build</div>
-              <div class="text-zinc-400 pl-3">Successfully tagged backend-core:latest</div>
+          <!-- Live Metrics Gauges -->
+          <div class="p-4 grid grid-cols-2 gap-3 border-b border-zinc-800/80 bg-zinc-900/40">
+            <div class="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <div class="text-[10px] text-zinc-400 flex items-center justify-between">
+                <span>JVM HEAP (ZGC)</span>
+                <span class="text-emerald-400 font-bold">342 MB</span>
+              </div>
+              <div class="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div class="bg-emerald-400 h-full rounded-full w-[34%]"></div>
+              </div>
             </div>
 
-            <div>
-              <div class="text-zinc-500 text-[11px]"># Start containerized microservices stack</div>
-              <div class="text-accent font-semibold">$ docker compose up -d</div>
-              <div class="text-emerald-400 pl-3">✔ Container enterprise-app Started (healthy)</div>
-            </div>
-
-            <div>
-              <div class="text-zinc-500 text-[11px]"># Verify reverse proxy &amp; SSL routing</div>
-              <div class="text-accent font-semibold">$ sudo nginx -t &amp;&amp; sudo systemctl reload nginx</div>
-              <div class="text-zinc-400 pl-3">nginx: configuration syntax is ok, test is successful</div>
-            </div>
-
-            <div>
-              <div class="text-zinc-500 text-[11px]"># Monitor live application telemetry &amp; payments</div>
-              <div class="text-accent font-semibold">$ docker logs -f enterprise-app | grep "PAYMENT"</div>
-              <div class="text-cyan-300 pl-3">[PAYMENT-GATEWAY] CCAvenue Callback: Txn SUCCESS (ID: 948172)</div>
+            <div class="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <div class="text-[10px] text-zinc-400 flex items-center justify-between">
+                <span>HIKARICP POOL</span>
+                <span class="text-sky-400 font-bold">14 / 20</span>
+              </div>
+              <div class="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div class="bg-sky-400 h-full rounded-full w-[70%]"></div>
+              </div>
             </div>
           </div>
 
-          <div class="px-4 py-2 bg-zinc-900 border-t border-zinc-800 text-[11px] text-zinc-500">
-            Docker deployment commands demonstration
+          <!-- Container Terminal Logs -->
+          <div class="p-4 space-y-2.5 text-zinc-300 max-h-[220px] overflow-y-auto terminal-scroll text-[11px]">
+            <div>
+              <div class="text-zinc-500 text-[10px]"># Container Orchestration &amp; Health Probe</div>
+              <div class="text-accent font-semibold">$ docker compose ps --format "table {{.Name}}\t{{.Status}}"</div>
+              <div class="text-emerald-400 pl-2">✔ spring-app-core &nbsp;&nbsp;Up 42 days (healthy - 200 OK)</div>
+              <div class="text-emerald-400 pl-2">✔ nginx-ingress &nbsp;&nbsp;&nbsp;&nbsp;Up 42 days (HTTP/2 TLS 1.3)</div>
+              <div class="text-emerald-400 pl-2">✔ mysql-db-saas &nbsp;&nbsp;&nbsp;&nbsp;Up 42 days (port 3306 ACID)</div>
+            </div>
+
+            <div>
+              <div class="text-zinc-500 text-[10px]"># Fintech Reconciliation Stream</div>
+              <div class="text-accent font-semibold">$ docker logs --tail 2 -f spring-app-core | grep "RECONCILE"</div>
+              <div class="text-cyan-300 pl-2">[RECONCILE] Hook HMAC verified: Txn #948172 state =&gt; SETTLED</div>
+            </div>
+          </div>
+
+          <div class="px-4 py-2 bg-zinc-900 border-t border-zinc-800 text-[10px] text-zinc-500 flex items-center justify-between">
+            <span>Uptime: 99.99% • Zero-Downtime Reloads</span>
+            <span class="text-accent">Ubuntu 22.04 LTS</span>
           </div>
         </div>
       </div>
@@ -2084,15 +2697,36 @@ function app() {
       }
     },
 
+    // Command Palette State (Ctrl+K / Cmd+K)
+    cmdOpen: false,
+    cmdSearch: '',
+
+    // Live Request Flow Simulation State
+    simulatingRequest: false,
+    simStep: -1,
+    simLatency: 0,
+    simLogs: [],
+
+    // Fintech & Payment Sandbox State
+    simCryptoGateway: 'ccavenue',
+    simCryptoAmount: 4999,
+    simCryptoOrderId: 'ORD-84920',
+    simulatingCrypto: false,
+    cryptoStep: -1,
+    cryptoLogs: [],
+
+    // Production Code Architecture Explorer State
+    activeCodeTab: 'tenant-filter',
+
     // Interactive Terminal State
     terminalInput: '',
     terminalHistory: [
       { type: 'input', text: 'whoami' },
       { type: 'output', text: 'Ankit — Technical Lead & Full-Stack Architect' },
       { type: 'input', text: 'stack' },
-      { type: 'output', text: 'Java 21 (LTS) • Spring Boot • Angular • Docker • MySQL • Linux • Nginx' },
+      { type: 'output', text: 'Java 21 (LTS) • Spring Boot 3 • Angular 17 • Docker • MySQL • Linux • Nginx' },
       { type: 'input', text: 'payments' },
-      { type: 'output', text: 'CCAvenue • Razorpay • HDFC SmartHub • ICICI EasyPay • Paytm' },
+      { type: 'output', text: 'CCAvenue • Razorpay • HDFC SmartHub • ICICI EasyPay • Paytm (HMAC/AES)' },
       { type: 'input', text: 'status' },
       { type: 'output', text: '● Building scalable systems & leading engineering teams' }
     ],
@@ -2194,6 +2828,82 @@ function app() {
       }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
       document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    },
+
+    jumpTo(selector) {
+      this.cmdOpen = false;
+      const el = document.querySelector(selector);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    },
+
+    async runSimulatedRequest() {
+      if (this.simulatingRequest) return;
+      this.simulatingRequest = true;
+      this.simStep = 0;
+      this.simLogs = [];
+      this.simLatency = 0;
+
+      const hops = [
+        { name: 'Angular Client', log: '[CLIENT] Prepared POST /api/v1/checkout/intent payload + attached JWT (2ms)', delay: 400, lat: 2 },
+        { name: 'Nginx Gateway', log: '[NGINX] TLS 1.3 handshake verified • Leaky bucket rate-limit passed (3ms)', delay: 500, lat: 3 },
+        { name: 'Spring Boot Backend', log: '[SPRING] JwtAuthFilter authenticated principal • Virtual Thread spawned (4ms)', delay: 600, lat: 4 },
+        { name: 'Tenant Resolution & DB', log: '[TENANT] Resolved schema tenant_849 • HikariCP pool borrowed conn (3ms)', delay: 500, lat: 3 },
+        { name: 'Payment Aggregator', log: '[FINTECH] CCAvenue HMAC-SHA256 signed • Gateway response: 200 OK (6ms)', delay: 700, lat: 6 }
+      ];
+
+      for (let i = 0; i < hops.length; i++) {
+        this.simStep = i;
+        this.simLogs.push(hops[i].log);
+        this.simLatency += hops[i].lat;
+        await new Promise(r => setTimeout(r, hops[i].delay));
+      }
+
+      this.simLogs.push(`[SUCCESS] End-to-end transaction pipeline executed in ${this.simLatency}ms total!`);
+      this.simulatingRequest = false;
+    },
+
+    async runCryptoSimulation() {
+      if (this.simulatingCrypto) return;
+      this.simulatingCrypto = true;
+      this.cryptoStep = 0;
+      this.cryptoLogs = [];
+
+      const gw = this.simCryptoGateway.toUpperCase();
+      const amt = this.simCryptoAmount || '4999';
+      const ord = this.simCryptoOrderId || 'ORD-84920';
+
+      const steps = [
+        `[STEP 1 - AES-256] Generating Session Key for ${gw} • Encrypted order payload: 8f4a9b2c83d...`,
+        `[STEP 2 - HMAC] Checksum computed: HMAC_SHA256(${ord}|${amt}|INR|SECRET) => 4a9e2f810b5c7d6e...`,
+        `[STEP 3 - WEBHOOK] Aggregator callback received • Nonce verified • Replay attack test: PASSED (200 OK)`,
+        `[STEP 4 - RECONCILIATION] Double-entry ledger updated in MySQL schema • ACID transaction committed.`
+      ];
+
+      for (let i = 0; i < steps.length; i++) {
+        this.cryptoStep = i;
+        this.cryptoLogs.push(steps[i]);
+        await new Promise(r => setTimeout(r, 650));
+      }
+
+      this.cryptoLogs.push(`✓ Transaction ${ord} of ₹${amt} verified and settled across ${gw}!`);
+      this.simulatingCrypto = false;
+    },
+
+    copyCode(tabKey) {
+      let codeText = '';
+      if (tabKey === 'tenant-filter') {
+        codeText = `package com.ankit.nexus.security;\n\nimport jakarta.servlet.FilterChain;\nimport jakarta.servlet.http.HttpServletRequest;\nimport jakarta.servlet.http.HttpServletResponse;\nimport org.springframework.stereotype.Component;\nimport org.springframework.web.filter.OncePerRequestFilter;\n\n@Component\npublic class TenantContextFilter extends OncePerRequestFilter {\n    private static final String HEADER_TENANT_ID = "X-Tenant-ID";\n\n    @Override\n    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws Exception {\n        String tenantId = request.getHeader(HEADER_TENANT_ID);\n        if (tenantId != null && !tenantId.isBlank()) {\n            TenantContextHolder.setTenantId(tenantId);\n        } else {\n            TenantContextHolder.setTenantId("default_public");\n        }\n        try {\n            filterChain.doFilter(request, response);\n        } finally {\n            TenantContextHolder.clear();\n        }\n    }\n}`;
+      } else if (tabKey === 'crypto-util') {
+        codeText = `package com.ankit.nexus.fintech.crypto;\n\nimport javax.crypto.Cipher;\nimport javax.crypto.spec.SecretKeySpec;\nimport java.nio.charset.StandardCharsets;\nimport java.security.MessageDigest;\n\npublic class CCAvenueAES256Crypto {\n    public static String encrypt(String plainText, String workingKey) throws Exception {\n        MessageDigest md = MessageDigest.getInstance("MD5");\n        byte[] keyBytes = md.digest(workingKey.getBytes(StandardCharsets.UTF_8));\n        SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");\n        Cipher cipher = Cipher.getInstance("AES");\n        cipher.init(Cipher.ENCRYPT_MODE, keySpec);\n        byte[] encrypted = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));\n        return bytesToHex(encrypted);\n    }\n}`;
+      } else if (tabKey === 'dockerfile') {
+        codeText = `FROM maven:3.9.6-eclipse-temurin-21-alpine AS build\nWORKDIR /app\nCOPY pom.xml .\nRUN mvn dependency:go-offline -B\nCOPY src ./src\nRUN mvn clean package -DskipTests -B\n\nFROM eclipse-temurin:21-jre-alpine\nWORKDIR /app\nRUN addgroup -S appgroup && adduser -S appuser -G appgroup\nCOPY --from=build /app/target/*.jar app.jar\nUSER appuser\nEXPOSE 8080\nENTRYPOINT ["java", "-XX:+UseZGC", "-XX:+ZGenerational", "-jar", "app.jar"]`;
+      } else {
+        codeText = `upstream spring_backend {\n    server app_core_1:8080 max_fails=3 fail_timeout=10s;\n    keepalive 32;\n}\n\nserver {\n    listen 443 ssl http2;\n    server_name ankitnexus.com;\n    ssl_protocols TLSv1.2 TLSv1.3;\n    location /api/ {\n        proxy_pass http://spring_backend;\n        proxy_set_header Host $host;\n        proxy_set_header X-Tenant-ID $http_x_tenant_id;\n    }\n}`;
+      }
+
+      this.copyToClipboard(codeText, 'Code Snippet');
     },
 
     renderMarkdown(text) {
